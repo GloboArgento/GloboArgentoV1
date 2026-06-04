@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío del Día</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Input de respuesta con recuadro elegante */
+        #inputRespuesta {
+            width: 60%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            outline: none;
+            transition: transform 0.15s ease, border 0.2s ease;
+        }
+        #inputRespuesta:focus {
+            border-color: #4A90E2;
+            transform: scale(1.02);
+        }
+
+        /* Botón de enviar igual que el de comprobar */
+        #botonEnviar {
+            padding: 8px 15px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+        #botonEnviar:hover {
+            background-color: #45A049;
+            transform: scale(1.05);
+        }
+
+        /* Pista resaltada */
+        #pistaDesafio {
+            background: linear-gradient(135deg, #50C9C3, #96DEDA);
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 2px solid #4A90E2;
+        }
+
+        /* Contenedor del desafío centrado */
+        #desafio-container {
+            max-width: 500px;
+            margin: 30px auto;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Cronómetro estilo animado */
+        #cronometro {
+            font-weight: bold;
+            font-size: 24px;
+            transition: color 0.5s ease, transform 0.2s ease;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Desafío del Día: Wordle</h1>
+
+    <div id="desafio-container">
+        <!-- Pista resaltada -->
+        <div id="pistaDesafio"></div>
+
+        <input type="text" id="inputRespuesta" placeholder="Escribe tu respuesta">
+        <button id="botonEnviar">Enviar</button>
+
+        <p id="mensajeDesafio"></p>
+
+        <!-- Cronómetro con emoji -->
+        <p><span>⏱️</span> <span id="cronometro">15</span></p>
+    </div>
+
+    <a href="index.html" class="boton-menu">Volver al Menú</a>
+
+    <script src="js/desafio.js"></script>
+</body>
+</html>

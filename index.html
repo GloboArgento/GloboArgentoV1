@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Globo Argento - Menú</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* ===== Glow del título ===== */
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            50% { text-shadow: 0 0 20px #4A90E2, 0 0 30px #50E3C2; }
+            100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+        }
+        h1 {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            font-size: 36px;
+            margin-top: 20px;
+            animation: glow 2s infinite;
+        }
+
+        /* ===== Botón Tienda ===== */
+        #botonTienda {
+            position: fixed;
+            top: 10px; left: 10px;
+            background: #FFD700;
+            color: #000;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            z-index: 1000;
+        }
+        #botonTienda:hover { transform: scale(1.1); }
+
+
+
+        /* ===== Botón cerrar sesión ===== */
+        #cerrarSesion {
+            position: fixed; top: 10px; right: 10px;
+            background: #ff4757; color: #fff;
+            padding: 10px 15px; border-radius: 8px;
+            font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+        }
+        #cerrarSesion:hover { transform: scale(1.05); }
+
+        /* ===== Modal Tienda ===== */
+        #overlayTienda {
+            position: fixed; top:0; left:0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center; justify-content: center;
+            z-index: 2000;
+        }
+        #modalTienda {
+            width: 80%; max-width: 900px; height: 80%;
+            background: #fff; border-radius: 15px;
+            overflow: hidden; position: relative;
+            animation: aparecer 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        @keyframes aparecer { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        #cerrarTienda { position: absolute; top:10px; right:15px; font-size:22px; cursor:pointer; font-weight:bold; z-index:10; }
+        #modalTienda iframe { width: 100%; height: 100%; border: none; }
+
+        /* ===== Modal Usuario ===== */
+        #overlayUsuario {
+            position: fixed; top:0; left:0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center; justify-content: center;
+            z-index: 3000;
+        }
+        #modalUsuario {
+            background: #fff; padding: 30px;
+            border-radius: 15px; text-align: center;
+            width: 90%; max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        #modalUsuario input {
+            width: 80%; padding: 10px;
+            margin: 15px 0; font-size: 16px;
+            border-radius: 8px; border: 1px solid #ccc;
+        }
+        #modalUsuario button {
+            padding: 10px 20px;
+            border: none; border-radius: 8px;
+            background: #6c5ce7; color: #fff;
+            font-weight: bold; cursor: pointer;
+            font-size: 16px;
+        }
+        #modalUsuario p { color: #d63031; margin-top: 5px; min-height: 20px; }
+
+        /* País del día */
+        #paisDelDia {
+            width: 280px; margin: 30px auto 0 auto;
+            padding: 15px;
+            background: linear-gradient(135deg, #4A90E2, #50E3C2);
+            border-radius: 15px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #paisDelDia img { width: 140px; border-radius: 8px; border: 2px solid #fff; }
+
+        /* ===== Nombre de usuario animado ===== */
+        #nombreUsuarioDisplay {
+            position: fixed;
+            bottom: 15px; right: 15px;
+            background: linear-gradient(135deg, #6c5ce7, #00b894);
+            color: #fff; font-weight: bold;
+            padding: 10px 20px; border-radius: 20px;
+            font-family: Arial, sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            animation: deslizarBrillo 2s ease-in-out infinite alternate;
+            z-index: 1000;
+            display: none;
+        }
+        @keyframes deslizarBrillo {
+            0% { transform: translateY(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+            50% { transform: translateY(0px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
+            100% { transform: translateY(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Botones -->
+    <div id="botonTienda">Tienda 🛒</div>
+    <div id="cerrarSesion">Cerrar sesión</div>
+
+    <!-- Nombre de usuario -->
+    <div id="nombreUsuarioDisplay"></div>
+
+    <h1>Globo Argento 🌎</h1>
+
+    <div id="frases-container">
+        <span id="frase-dia"></span>
+    </div>
+
+    <div class="menu">
+        <a href="juego.html" class="boton-menu">Jugar</a>
+        <a href="desafio.html" class="boton-menu">Desafío del Día</a>
+        <a href="estadisticas.html" class="boton-menu">Estadísticas Generales</a>
+        <a href="ranking.html" class="boton-menu">Ranking</a>
+        <a href="emoji.html" class="boton-menu">Emojis 🎭
+            <span id="rachaEmoji" class="racha">0</span>
+        </a>
+    </div>
+
+    <div id="paisDelDia">
+        <img id="banderaDia" src="">
+        <h2 id="nombrePais"></h2>
+        <p id="datoPais"></p>
+    </div>
+
+    <!-- Modal Tienda -->
+    <div id="overlayTienda">
+        <div id="modalTienda">
+            <div id="cerrarTienda">✖</div>
+            <iframe src="tienda.html"></iframe>
+        </div>
+    </div>
+
+    <!-- Modal Usuario -->
+    <div id="overlayUsuario">
+        <div id="modalUsuario">
+            <h2>Ingresa tu nombre</h2>
+            <input type="text" id="inputUsuario" placeholder="Nombre (3-20 letras)" maxlength="20">
+            <button id="btnGuardarUsuario">Ingresar</button>
+            <p id="mensajeUsuario"></p>
+        </div>
+    </div>
+
+    <script>
+        // ========================== USUARIO ==========================
+        const overlayUsuario = document.getElementById("overlayUsuario");
+        const inputUsuario = document.getElementById("inputUsuario");
+        const btnGuardarUsuario = document.getElementById("btnGuardarUsuario");
+        const mensajeUsuario = document.getElementById("mensajeUsuario");
+        const cerrarSesion = document.getElementById("cerrarSesion");
+        const nombreUsuarioDisplay = document.getElementById("nombreUsuarioDisplay");
+
+        function solicitarUsuario() {
+            overlayUsuario.style.display = "flex";
+        }
+
+        function validarNombre(nombre) {
+            return /^[A-Za-z0-9]{3,20}$/.test(nombre);
+        }
+
+        function mostrarNombreUsuario(nombre) {
+            nombreUsuarioDisplay.textContent = "👤 " + nombre;
+            nombreUsuarioDisplay.style.display = "block";
+        }
+
+        function guardarUsuario() {
+            const nombre = inputUsuario.value.trim();
+            if(!validarNombre(nombre)) {
+                mensajeUsuario.textContent = "El nombre debe tener 3-20 letras/números sin espacios.";
+                return;
+            }
+            localStorage.setItem("usuario", nombre);
+            overlayUsuario.style.display = "none";
+            cerrarSesion.style.display = "block";
+            mostrarNombreUsuario(nombre);
+        }
+
+        btnGuardarUsuario.onclick = guardarUsuario;
+        inputUsuario.addEventListener("keyup", e => { if(e.key === "Enter") guardarUsuario(); });
+
+        cerrarSesion.onclick = () => {
+            localStorage.removeItem("usuario");
+            location.reload(); // recarga para pedir usuario de nuevo
+        };
+
+        window.onload = () => {
+            const usuario = localStorage.getItem("usuario");
+            if(!usuario) {
+                solicitarUsuario();
+            } else {
+                cerrarSesion.style.display = "block";
+                mostrarNombreUsuario(usuario);
+            }
+        };
+
+        // ========================== TIENDA ==========================
+        const botonTienda = document.getElementById("botonTienda");
+        const overlayTienda = document.getElementById("overlayTienda");
+        const cerrarTienda = document.getElementById("cerrarTienda");
+
+        botonTienda.onclick = () => overlayTienda.style.display = "flex";
+        cerrarTienda.onclick = () => overlayTienda.style.display = "none";
+        overlayTienda.onclick = e => { if(e.target === overlayTienda) overlayTienda.style.display = "none"; };
+
+        // ========================== FRASES ==========================
+        const frases = [
+            "Cada día es una nueva oportunidad.",
+            "Nunca dejes de aprender.",
+            "La práctica hace al maestro.",
+            "Sé el cambio que quieres ver.",
+            "La paciencia es la clave del éxito.",
+            "Cree en ti mismo.",
+            "Nunca es tarde para empezar.",
+            "La constancia vence al talento.",
+            "Aprovecha cada momento.",
+            "El esfuerzo trae recompensas.",
+            "La felicidad está en las pequeñas cosas.",
+            "Sigue tus sueños sin miedo.",
+            "Cada error es una lección.",
+            "Rodéate de buena energía.",
+            "La creatividad es infinita.",
+            "Aprende algo nuevo cada día.",
+            "Disfruta del proceso.",
+            "Confía en tu intuición.",
+            "El éxito es cuestión de actitud.",
+            "Tu actitud determina tu éxito."
+        ];
+        const fraseDiaSpan = document.getElementById('frase-dia');
+        function mostrarFrase() {
+            const indice = Math.floor(Math.random() * frases.length);
+            const frase = frases[indice];
+            fraseDiaSpan.textContent = "";
+            fraseDiaSpan.style.borderRight = '2px solid #4A90E2';
+            let i=0;
+            function escribir() {
+                if(i<frase.length) {
+                    fraseDiaSpan.textContent += frase.charAt(i);
+                    i++;
+                    setTimeout(escribir,50);
+                } else { fraseDiaSpan.style.borderRight = 'none'; }
+            }
+            escribir();
+        }
+        mostrarFrase();
+
+        // ========================== PAÍS DEL DÍA ==========================
+        const paises = [
+            { nombre: "Japón", imagen: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg", dato: "Japón combina tradición milenaria con tecnología de punta." },
+            { nombre: "Brasil", imagen: "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg", dato: "En Brasil se encuentra la mayor selva tropical del mundo: el Amazonas." },
+            { nombre: "Canadá", imagen: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg", dato: "Canadá tiene más de 31.000 lagos de tamaño considerable." },
+        ];
+        const paisDelDiaDiv = document.getElementById("paisDelDia");
+        const banderaDia = document.getElementById("banderaDia");
+        const nombrePais = document.getElementById("nombrePais");
+        const datoPais = document.getElementById("datoPais");
+
+        function mostrarPaisAleatorio() {
+            paisDelDiaDiv.style.opacity = 0;
+            paisDelDiaDiv.style.transform = "translateY(20px)";
+            setTimeout(()=>{
+                const indice = Math.floor(Math.random()*paises.length);
+                const pais = paises[indice];
+                banderaDia.src = pais.imagen;
+                banderaDia.alt = "Bandera de "+pais.nombre;
+                nombrePais.textContent = pais.nombre;
+                datoPais.textContent = pais.dato;
+                paisDelDiaDiv.style.opacity = 1;
+                paisDelDiaDiv.style.transform = "translateY(0)";
+            },500);
+        }
+        mostrarPaisAleatorio();
+        setInterval(mostrarPaisAleatorio,30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Globo Argento - Tienda</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h1 { 
+            text-align: center; 
+            margin: 20px 0; 
+            font-size: 36px; 
+        }
+
+        h1 span { 
+            display: inline-block; 
+            animation: colorTitulo 5s linear infinite; 
+        }
+
+        @keyframes colorTitulo {
+            0% { color: rgb(255,0,150); }
+            25% { color: rgb(0,200,255); }
+            50% { color: rgb(255,150,0); }
+            75% { color: rgb(0,255,100); }
+            100% { color: rgb(255,0,150); }
+        }
+
+        /* Tienda */
+        .tienda-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            max-width: 650px;
+            margin-bottom: 40px;
+        }
+
+        .articulo {
+            width: 140px;
+            background: linear-gradient(145deg, #ffeaa7, #fab1a0);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .articulo:hover { 
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.3);
+        }
+
+        .articulo img { width: 60px; height: 60px; margin-bottom: 8px; border-radius: 10px; }
+        .articulo h3 { margin: 8px 0 4px 0; font-size: 16px; }
+        .articulo p { font-size: 13px; margin-bottom: 8px; }
+
+        /* Precio */
+        .precio { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #fdcb6e, #e17055); 
+            color: #fff; 
+            padding: 6px 12px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            font-size: 18px; 
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2); 
+            transition: transform 0.2s ease, box-shadow 0.2s ease; 
+        }
+        .precio:hover { transform: scale(1.1); box-shadow: 0 5px 12px rgba(0,0,0,0.3); }
+
+        /* Monedas */
+        #monedas-container { display: flex; justify-content: center; margin-bottom: 20px; }
+        #monedas-display { 
+            font-size: 20px; 
+            font-weight: bold; 
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0); 
+            padding: 8px 16px; 
+            border-radius: 25px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            animation: brilloMoneda 2s infinite alternate; 
+        }
+        @keyframes brilloMoneda { 0% { box-shadow: 0 4px 12px rgba(0,0,0,0.2); } 100% { box-shadow: 0 8px 20px rgba(0,0,0,0.4); } }
+
+        /* Mensajes */
+        #mensaje { margin-top: 15px; font-size: 16px; color: #d63031; font-weight: bold; min-height: 24px; }
+        .oculta { position: absolute; bottom: 5px; left: 5px; font-family: 'Courier New', Courier, monospace; font-size: 10px; color: rgba(0,0,0,0.2); }
+
+        /* Exito compra */
+        .exito { 
+            position: absolute; 
+            top: -10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: #00b894; 
+            color: #fff; 
+            padding: 5px 10px; 
+            border-radius: 10px; 
+            font-size: 14px; 
+            opacity: 0; 
+            transition: opacity 0.5s ease, top 0.5s ease; 
+        }
+        .exito.mostrar { top: -30px; opacity: 1; }
+
+        /* Boton volver al menu */
+        .boton-menu { 
+            display: inline-block; 
+            margin-bottom: 20px; 
+            padding: 10px 20px; 
+            background: #6c5ce7; 
+            color: #fff; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            transition: transform 0.2s ease, box-shadow 0.2s ease; 
+        }
+        .boton-menu:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+
+        /* Sticker OFERTA */
+        .sticker-oferta {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(135deg, #ff3d00, #ff6e40);
+            color: #fff;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transform: rotate(15deg);
+            animation: brillar 1.5s infinite alternate;
+            z-index: 5;
+        }
+
+        @keyframes brillar {
+            0% { box-shadow: 0 2px 6px rgba(255,0,0,0.5), 0 0 5px #fff; }
+            100% { box-shadow: 0 4px 12px rgba(255,69,0,0.8), 0 0 10px #fff; }
+        }
+
+        /* Articulo proximamente */
+        .articulo-prx img { width: 60px; height: 60px; }
+        .articulo-prx::after { 
+            content: "?"; 
+            position: absolute; 
+            font-size: 30px; 
+            color: #e17055; 
+            top: 20px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+        }
+    </style>
+</head>
+<body>
+    <h1><span>Globo Argento</span> 🌎</h1>
+
+    <div id="monedas-container">
+        <div id="monedas-display">💰 0</div>
+    </div>
+
+    <div class="tienda-container">
+        <!-- Articulo 1 con oferta -->
+        <div class="articulo" data-costo="50" data-tipo="vidas">
+            <div class="sticker-oferta">OFERTA</div>
+            <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png" alt="3 Vidas">
+            <h3>3 Vidas Extra</h3>
+            <p>Suma 3 vidas más en el juego de adivinar.</p>
+            <div class="precio">💰 50</div>
+            <div class="exito">¡Comprado!</div>
+        </div>
+
+        <!-- Articulo 2 -->
+        <div class="articulo" data-costo="75" data-tipo="tiempo">
+            <img src="https://cdn-icons-png.flaticon.com/512/892/892781.png" alt="+10 segundos">
+            <h3>+10 Segundos</h3>
+            <p>Agrega 10 segundos extra en Wordle.</p>
+            <div class="precio">⏱️ 75</div>
+            <div class="exito">¡Comprado!</div>
+        </div>
+
+        <!-- Articulo proximamente -->
+        <div class="articulo articulo-prx" data-costo="0" data-tipo="proximamente">
+            <img src="https://cdn-icons-png.flaticon.com/512/61/61457.png" alt="Próximamente">
+            <h3>???</h3>
+            <p>Próximamente</p>
+            <div class="precio">∞</div>
+            <div class="exito">¡Próximamente!</div>
+        </div>
+    </div>
+
+    <!-- BOTÓN VOLVER AL MENÚ -->
+    <a href="#" class="boton-menu" onclick="parent.document.getElementById('overlayTienda').style.display='none'; return false;">Volver al menú</a>
+
+    <div id="mensaje"></div>
+    <div class="oculta">Tienda en proceso</div>
+
+    <script>
+        let monedas = parseInt(localStorage.getItem("monedas")) || 0;
+        const monedasSpan = document.getElementById("monedas-display");
+        monedasSpan.textContent = `💰 ${monedas}`;
+
+        const articulos = document.querySelectorAll(".articulo");
+        const mensaje = document.getElementById("mensaje");
+
+        function actualizarMonedasDisplay() {
+            monedasSpan.textContent = `💰 ${monedas}`;
+        }
+
+        articulos.forEach(art => {
+            art.addEventListener("click", () => {
+                const costo = parseInt(art.dataset.costo);
+                const tipo = art.dataset.tipo;
+
+                if(tipo === "proximamente"){
+                    mensaje.textContent = "Este artículo estará disponible pronto 🕒";
+                    return;
+                }
+
+                if (monedas >= costo) {
+                    monedas -= costo;
+                    localStorage.setItem("monedas", monedas);
+                    actualizarMonedasDisplay();
+
+                    const exito = art.querySelector(".exito");
+                    exito.classList.add("mostrar");
+                    setTimeout(() => exito.classList.remove("mostrar"), 1000);
+
+                    // Aplicar efecto según tipo
+                    if(tipo === "vidas"){
+                        let vidasExtra = parseInt(localStorage.getItem('vidasExtra')) || 0;
+                        vidasExtra += 3;
+                        localStorage.setItem('vidasExtra', vidasExtra);
+                        alert("¡3 vidas añadidas al juego!");
+                    } else if(tipo === "tiempo"){
+                        let tiempoExtra = parseInt(localStorage.getItem('segundosExtra')) || 0;
+                        tiempoExtra += 10;
+                        localStorage.setItem('segundosExtra', tiempoExtra);
+                        alert("¡10 segundos añadidos al Wordle!");
+                    }
+
+                    mensaje.textContent = "";
+                } else {
+                    mensaje.textContent = "No tienes suficientes monedas 💰";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
