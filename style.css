@@ -1,0 +1,197 @@
+/* Fondo y tipografía general */ 
+body {
+    background: linear-gradient(135deg, #c9d6ff, #e2e2e2);
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+/* Botones principales */
+.boton-menu, #botonDesafio, #botonRanking {
+    display: inline-block;
+    padding: 14px 30px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    background: #4A90E2;
+    border-radius: 10px;
+    text-decoration: none;
+    margin: 10px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.boton-menu:hover, #botonDesafio:hover, #botonRanking:hover {
+    transform: scale(1.08);
+    background: #357ABD;
+}
+
+/* Racha de emojis */
+.racha {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #FF5733;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 50%;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Botón de sonido */
+.boton-sonido {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.2s;
+}
+
+.boton-sonido:hover {
+    transform: scale(1.2);
+}
+
+/* Opciones de juego */
+#opciones button {
+    padding: 10px 15px;
+    margin: 6px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+#opciones button:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+/* Input emojis más corto */
+#inputPais {
+    width: 50%;
+    padding: 6px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Estadísticas y ranking */
+#estadisticas, #rankingTableContainer {
+    display: none;
+    margin-top: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 80%;
+    margin: 0 auto;
+    font-size: 18px;
+}
+
+table th, table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+table th {
+    background-color: #4A90E2;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Wordle / Desafío diario */
+#desafio-container {
+    margin: 20px auto;
+    padding: 20px;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+}
+
+/* Recuadro de frases elegante */
+#frases-container {
+    margin: 20px auto;
+    padding: 15px 20px;
+    max-width: 500px;
+    background: #f5e6c8; /* color carta antigua / pergamino */
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    font-family: Georgia, serif;
+    font-style: italic;
+    color: #333;
+    font-size: 18px;
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Eliminamos la animación CSS del span para que JS maneje la escritura */
+#frases-container span {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 2px solid #4A90E2;
+}
+#monedaDiv {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    z-index: 1000;
+}
+
+.monedaAnim {
+    transform: scale(1.3);
+    box-shadow: 0 0 15px gold;
+}
+#mensajeMoneda {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: rgba(255, 215, 0, 0.9);
+    color: #000;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1001;
+}
+#mensajeMoneda {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: rgba(255, 215, 0, 0.9);
+    color: #000;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 1001;
+}
+
+
