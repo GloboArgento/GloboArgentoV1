@@ -6,7 +6,8 @@
     <title>Globo Argento - Menú</title>
     <link rel="stylesheet" href="style.css">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase PRIMERO, antes de cualquier script que lo use -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         /* ===== Glow del título ===== */
@@ -40,8 +41,6 @@
         }
         #botonTienda:hover { transform: scale(1.1); }
 
-
-
         /* ===== Botón cerrar sesión ===== */
         #cerrarSesion {
             position: fixed; top: 10px; right: 10px;
@@ -51,6 +50,8 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             display: none;
             z-index: 1000;
+            border: none;
+            transition: transform 0.2s;
         }
         #cerrarSesion:hover { transform: scale(1.05); }
 
@@ -74,7 +75,7 @@
         #cerrarTienda { position: absolute; top:10px; right:15px; font-size:22px; cursor:pointer; font-weight:bold; z-index:10; }
         #modalTienda iframe { width: 100%; height: 100%; border: none; }
 
-        /* ===== Modal Usuario ===== */
+        /* ===== Modal Usuario (nombre local) ===== */
         #overlayUsuario {
             position: fixed; top:0; left:0;
             width: 100%; height: 100%;
@@ -89,19 +90,53 @@
             width: 90%; max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
+        #modalUsuario h2 { margin-bottom: 5px; }
         #modalUsuario input {
             width: 80%; padding: 10px;
             margin: 15px 0; font-size: 16px;
             border-radius: 8px; border: 1px solid #ccc;
+            display: block; margin: 10px auto;
         }
-        #modalUsuario button {
+        #modalUsuario .btn-guardar {
             padding: 10px 20px;
             border: none; border-radius: 8px;
             background: #6c5ce7; color: #fff;
             font-weight: bold; cursor: pointer;
-            font-size: 16px;
+            font-size: 16px; width: 100%;
+            margin-top: 8px;
         }
-        #modalUsuario p { color: #d63031; margin-top: 5px; min-height: 20px; }
+        #modalUsuario .btn-guardar:hover { background: #5a4bd1; }
+
+        /* ===== Botón Google dentro del modal ===== */
+        #btnGoogle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            color: #444;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        #btnGoogle:hover { background: #f5f5f5; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        #btnGoogle img { width: 20px; height: 20px; }
+
+        .separador {
+            display: flex; align-items: center; gap: 10px;
+            color: #aaa; font-size: 13px; margin: 12px 0;
+        }
+        .separador::before, .separador::after {
+            content: ''; flex: 1; height: 1px; background: #ddd;
+        }
+
+        #mensajeUsuario { color: #d63031; margin-top: 8px; min-height: 20px; font-size: 13px; }
 
         /* País del día */
         #paisDelDia {
@@ -135,17 +170,26 @@
             50% { transform: translateY(0px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
             100% { transform: translateY(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
         }
+
+        /* ===== Loading inicial ===== */
+        #loadingOverlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999;
+            color: #fff; font-size: 20px; font-family: Arial, sans-serif;
+        }
     </style>
 </head>
 
 <body>
 
+    <!-- Loading mientras se verifica sesión -->
+    <div id="loadingOverlay">Cargando... ⏳</div>
+
     <!-- Botones -->
     <div id="botonTienda">Tienda 🛒</div>
-    <div id="cerrarSesion">Cerrar sesión</div>
-    <button onclick="loginConGoogle()">
-  Iniciar sesión con Google
-</button>
+    <button id="cerrarSesion">Cerrar sesión</button>
 
     <!-- Nombre de usuario -->
     <div id="nombreUsuarioDisplay"></div>
@@ -167,7 +211,7 @@
     </div>
 
     <div id="paisDelDia">
-        <img id="banderaDia" src="">
+        <img id="banderaDia" src="" alt="Bandera">
         <h2 id="nombrePais"></h2>
         <p id="datoPais"></p>
     </div>
@@ -183,90 +227,151 @@
     <!-- Modal Usuario -->
     <div id="overlayUsuario">
         <div id="modalUsuario">
-            <h2>Ingresa tu nombre</h2>
+            <h2>¡Bienvenido a Globo Argento! 🌎</h2>
+            <p style="color:#666; font-size:14px;">Iniciá sesión o elegí un nombre de usuario</p>
+
+            <!-- Opción Google -->
+            <button id="btnGoogle">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Iniciar sesión con Google
+            </button>
+
+            <div class="separador">o</div>
+
+            <!-- Opción nombre local -->
             <input type="text" id="inputUsuario" placeholder="Nombre (3-20 letras)" maxlength="20">
-            <button id="btnGuardarUsuario">Ingresar</button>
+            <button class="btn-guardar" id="btnGuardarUsuario">Jugar sin cuenta</button>
             <p id="mensajeUsuario"></p>
         </div>
     </div>
 
     <script>
+        // ========================== SUPABASE ==========================
+        // Inicialización correcta usando el namespace global de la CDN
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            "https://tapctytjeknttbmoqflx.supabase.co",
+            "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP"
+        );
 
-const supabase = window.supabase.createClient(
-  "https://tapctytjeknttbmoqflx.supabase.co",
-  "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP"
-);
-
-// 👇 ESTA FUNCIÓN VA AFUERA
-async function loginConGoogle() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google'
-  });
-
-  if (error) {
-    console.error(error);
-  }
-}
-        
-        // ========================== USUARIO ==========================
-        const overlayUsuario = document.getElementById("overlayUsuario");
-        const inputUsuario = document.getElementById("inputUsuario");
-        const btnGuardarUsuario = document.getElementById("btnGuardarUsuario");
-        const mensajeUsuario = document.getElementById("mensajeUsuario");
-        const cerrarSesion = document.getElementById("cerrarSesion");
+        // ========================== REFERENCIAS DOM ==========================
+        const overlayUsuario   = document.getElementById("overlayUsuario");
+        const inputUsuario     = document.getElementById("inputUsuario");
+        const btnGuardarUsuario= document.getElementById("btnGuardarUsuario");
+        const mensajeUsuario   = document.getElementById("mensajeUsuario");
+        const cerrarSesion     = document.getElementById("cerrarSesion");
         const nombreUsuarioDisplay = document.getElementById("nombreUsuarioDisplay");
+        const btnGoogle        = document.getElementById("btnGoogle");
+        const loadingOverlay   = document.getElementById("loadingOverlay");
 
-        function solicitarUsuario() {
-            overlayUsuario.style.display = "flex";
+        // ========================== AUTH CON GOOGLE ==========================
+        async function loginConGoogle() {
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href  // vuelve a esta misma página
+                }
+            });
+            if (error) {
+                mensajeUsuario.textContent = "Error al iniciar sesión con Google: " + error.message;
+                console.error("Google OAuth error:", error);
+            }
         }
 
-        function validarNombre(nombre) {
-            return /^[A-Za-z0-9]{3,20}$/.test(nombre);
-        }
+        btnGoogle.addEventListener("click", loginConGoogle);
 
+        // ========================== MANEJO DE SESIÓN ==========================
         function mostrarNombreUsuario(nombre) {
             nombreUsuarioDisplay.textContent = "👤 " + nombre;
             nombreUsuarioDisplay.style.display = "block";
         }
 
-        function guardarUsuario() {
-            const nombre = inputUsuario.value.trim();
-            if(!validarNombre(nombre)) {
-                mensajeUsuario.textContent = "El nombre debe tener 3-20 letras/números sin espacios.";
-                return;
-            }
-            localStorage.setItem("usuario", nombre);
+        function mostrarInterfazLogueado(nombre) {
             overlayUsuario.style.display = "none";
             cerrarSesion.style.display = "block";
             mostrarNombreUsuario(nombre);
         }
 
-        btnGuardarUsuario.onclick = guardarUsuario;
-        inputUsuario.addEventListener("keyup", e => { if(e.key === "Enter") guardarUsuario(); });
-
-        cerrarSesion.onclick = () => {
+        async function cerrarSesionCompleta() {
+            // Si hay sesión de Supabase, cerrarla
+            await supabaseClient.auth.signOut();
+            // También limpiar localStorage
             localStorage.removeItem("usuario");
-            location.reload(); // recarga para pedir usuario de nuevo
-        };
+            location.reload();
+        }
 
-        window.onload = () => {
-            const usuario = localStorage.getItem("usuario");
-            if(!usuario) {
-                solicitarUsuario();
+        cerrarSesion.addEventListener("click", cerrarSesionCompleta);
+
+        // ========================== INICIO: verificar sesión ==========================
+        async function inicializar() {
+            // Obtener sesión activa (funciona después del redirect de Google)
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            loadingOverlay.style.display = "none"; // ocultar loading
+
+            if (session && session.user) {
+                // Usuario logueado con Google
+                const nombre = session.user.user_metadata?.full_name
+                            || session.user.email?.split("@")[0]
+                            || "Usuario";
+                localStorage.setItem("usuario", nombre); // sincronizar localStorage
+                mostrarInterfazLogueado(nombre);
             } else {
-                cerrarSesion.style.display = "block";
-                mostrarNombreUsuario(usuario);
+                // Sin sesión Google: revisar localStorage
+                const usuarioLocal = localStorage.getItem("usuario");
+                if (usuarioLocal) {
+                    mostrarInterfazLogueado(usuarioLocal);
+                } else {
+                    // Pedir nombre o login
+                    overlayUsuario.style.display = "flex";
+                }
             }
-        };
+
+            // Escuchar cambios de sesión en tiempo real (útil tras el redirect)
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                if (session && session.user) {
+                    const nombre = session.user.user_metadata?.full_name
+                                || session.user.email?.split("@")[0]
+                                || "Usuario";
+                    localStorage.setItem("usuario", nombre);
+                    mostrarInterfazLogueado(nombre);
+                }
+            });
+        }
+
+        // ========================== NOMBRE LOCAL ==========================
+        function validarNombre(nombre) {
+            return /^[A-Za-z0-9]{3,20}$/.test(nombre);
+        }
+
+        function guardarUsuarioLocal() {
+            const nombre = inputUsuario.value.trim();
+            if (!validarNombre(nombre)) {
+                mensajeUsuario.textContent = "El nombre debe tener 3-20 letras/números sin espacios.";
+                return;
+            }
+            localStorage.setItem("usuario", nombre);
+            mostrarInterfazLogueado(nombre);
+        }
+
+        btnGuardarUsuario.addEventListener("click", guardarUsuarioLocal);
+        inputUsuario.addEventListener("keyup", e => { if (e.key === "Enter") guardarUsuarioLocal(); });
 
         // ========================== TIENDA ==========================
-        const botonTienda = document.getElementById("botonTienda");
+        const botonTienda   = document.getElementById("botonTienda");
         const overlayTienda = document.getElementById("overlayTienda");
-        const cerrarTienda = document.getElementById("cerrarTienda");
+        const cerrarTienda  = document.getElementById("cerrarTienda");
 
-        botonTienda.onclick = () => overlayTienda.style.display = "flex";
-        cerrarTienda.onclick = () => overlayTienda.style.display = "none";
-        overlayTienda.onclick = e => { if(e.target === overlayTienda) overlayTienda.style.display = "none"; };
+        botonTienda.addEventListener("click", () => overlayTienda.style.display = "flex");
+        cerrarTienda.addEventListener("click", () => overlayTienda.style.display = "none");
+        overlayTienda.addEventListener("click", e => {
+            if (e.target === overlayTienda) overlayTienda.style.display = "none";
+        });
+
+        // ========================== RACHA EMOJI ==========================
+        const rachaEmoji = document.getElementById("rachaEmoji");
+        const rachaGuardada = localStorage.getItem("rachaEmoji") || "0";
+        rachaEmoji.textContent = rachaGuardada;
 
         // ========================== FRASES ==========================
         const frases = [
@@ -293,17 +398,18 @@ async function loginConGoogle() {
         ];
         const fraseDiaSpan = document.getElementById('frase-dia');
         function mostrarFrase() {
-            const indice = Math.floor(Math.random() * frases.length);
-            const frase = frases[indice];
+            const frase = frases[Math.floor(Math.random() * frases.length)];
             fraseDiaSpan.textContent = "";
             fraseDiaSpan.style.borderRight = '2px solid #4A90E2';
-            let i=0;
+            let i = 0;
             function escribir() {
-                if(i<frase.length) {
+                if (i < frase.length) {
                     fraseDiaSpan.textContent += frase.charAt(i);
                     i++;
-                    setTimeout(escribir,50);
-                } else { fraseDiaSpan.style.borderRight = 'none'; }
+                    setTimeout(escribir, 50);
+                } else {
+                    fraseDiaSpan.style.borderRight = 'none';
+                }
             }
             escribir();
         }
@@ -311,31 +417,33 @@ async function loginConGoogle() {
 
         // ========================== PAÍS DEL DÍA ==========================
         const paises = [
-            { nombre: "Japón", imagen: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg", dato: "Japón combina tradición milenaria con tecnología de punta." },
-            { nombre: "Brasil", imagen: "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg", dato: "En Brasil se encuentra la mayor selva tropical del mundo: el Amazonas." },
-            { nombre: "Canadá", imagen: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg", dato: "Canadá tiene más de 31.000 lagos de tamaño considerable." },
+            { nombre: "Japón",   imagen: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg",   dato: "Japón combina tradición milenaria con tecnología de punta." },
+            { nombre: "Brasil",  imagen: "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg",  dato: "En Brasil se encuentra la mayor selva tropical del mundo: el Amazonas." },
+            { nombre: "Canadá",  imagen: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg", dato: "Canadá tiene más de 31.000 lagos de tamaño considerable." },
         ];
         const paisDelDiaDiv = document.getElementById("paisDelDia");
-        const banderaDia = document.getElementById("banderaDia");
-        const nombrePais = document.getElementById("nombrePais");
-        const datoPais = document.getElementById("datoPais");
+        const banderaDia    = document.getElementById("banderaDia");
+        const nombrePais    = document.getElementById("nombrePais");
+        const datoPais      = document.getElementById("datoPais");
 
         function mostrarPaisAleatorio() {
             paisDelDiaDiv.style.opacity = 0;
             paisDelDiaDiv.style.transform = "translateY(20px)";
-            setTimeout(()=>{
-                const indice = Math.floor(Math.random()*paises.length);
-                const pais = paises[indice];
+            setTimeout(() => {
+                const pais = paises[Math.floor(Math.random() * paises.length)];
                 banderaDia.src = pais.imagen;
-                banderaDia.alt = "Bandera de "+pais.nombre;
+                banderaDia.alt = "Bandera de " + pais.nombre;
                 nombrePais.textContent = pais.nombre;
-                datoPais.textContent = pais.dato;
-                paisDelDiaDiv.style.opacity = 1;
+                datoPais.textContent   = pais.dato;
+                paisDelDiaDiv.style.opacity   = 1;
                 paisDelDiaDiv.style.transform = "translateY(0)";
-            },500);
+            }, 500);
         }
         mostrarPaisAleatorio();
-        setInterval(mostrarPaisAleatorio,30000);
+        setInterval(mostrarPaisAleatorio, 30000);
+
+        // ========================== ARRANCAR ==========================
+        inicializar();
     </script>
 </body>
 </html>
