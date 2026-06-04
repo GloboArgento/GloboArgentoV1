@@ -247,11 +247,25 @@
 
     <script>
         // ========================== SUPABASE ==========================
-        // Inicialización correcta usando el namespace global de la CDN
+        // flowType: 'pkce' es OBLIGATORIO para sitios estáticos (GitHub Pages).
+        // El flujo implicit devuelve el token en el hash (#), que GitHub Pages
+        // no procesa. PKCE usa un "code" en la query (?code=...) que el SDK
+        // intercambia automáticamente por una sesión al cargar la página.
         const { createClient } = supabase;
         const supabaseClient = createClient(
             "https://tapctytjeknttbmoqflx.supabase.co",
-            "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP"
+            "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+            {
+                auth: {
+                    flowType: 'pkce',
+                    // Guarda la sesión en localStorage para que persista entre recargas
+                    persistSession: true,
+                    // Detecta automáticamente el token en la URL al cargar
+                    detectSessionInUrl: true,
+                    // Necesario para que el PKCE code challenge se guarde correctamente
+                    storage: window.localStorage
+                }
+            }
         );
 
         // ========================== REFERENCIAS DOM ==========================
@@ -266,10 +280,17 @@
 
         // ========================== AUTH CON GOOGLE ==========================
         async function loginConGoogle() {
+            // IMPORTANTE: el redirectTo debe ser la URL exacta registrada en Supabase.
+            // Con PKCE, Supabase agrega ?code=... a esta URL al volver.
+            // Usamos origin + pathname para evitar que query params previos rompan el flujo.
+            const redirectTo = window.location.origin + window.location.pathname;
+
             const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.href  // vuelve a esta misma página
+                    redirectTo,
+                    // Fuerza que el usuario elija cuenta Google (no auto-login silencioso)
+                    queryParams: { prompt: 'select_account' }
                 }
             });
             if (error) {
@@ -304,39 +325,67 @@
 
         // ========================== INICIO: verificar sesión ==========================
         async function inicializar() {
-            // Obtener sesión activa (funciona después del redirect de Google)
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            // Con flowType: 'pkce' y detectSessionInUrl: true, el SDK detecta
+            // automáticamente el ?code=... en la URL y lo intercambia por una sesión
+            // ANTES de que llamemos a getSession(). Solo tenemos que esperarlo.
 
-            loadingOverlay.style.display = "none"; // ocultar loading
+            // onAuthStateChange dispara PRIMERO cuando hay un code en la URL (PKCE exchange).
+            // Lo usamos como punto de entrada principal para el caso post-redirect.
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                console.log("Auth event:", event, session?.user?.email);
 
-            if (session && session.user) {
-                // Usuario logueado con Google
-                const nombre = session.user.user_metadata?.full_name
-                            || session.user.email?.split("@")[0]
-                            || "Usuario";
-                localStorage.setItem("usuario", nombre); // sincronizar localStorage
-                mostrarInterfazLogueado(nombre);
-            } else {
-                // Sin sesión Google: revisar localStorage
-                const usuarioLocal = localStorage.getItem("usuario");
-                if (usuarioLocal) {
-                    mostrarInterfazLogueado(usuarioLocal);
-                } else {
-                    // Pedir nombre o login
-                    overlayUsuario.style.display = "flex";
-                }
-            }
-
-            // Escuchar cambios de sesión en tiempo real (útil tras el redirect)
-            supabaseClient.auth.onAuthStateChange((_event, session) => {
-                if (session && session.user) {
+                if (event === 'SIGNED_IN' && session?.user) {
+                    // Llegamos acá tanto en el redirect de Google como en sesiones persistidas
                     const nombre = session.user.user_metadata?.full_name
+                                || session.user.user_metadata?.name
                                 || session.user.email?.split("@")[0]
                                 || "Usuario";
                     localStorage.setItem("usuario", nombre);
+                    loadingOverlay.style.display = "none";
                     mostrarInterfazLogueado(nombre);
+
+                    // Limpiar el ?code= de la URL sin recargar la página
+                    const url = new URL(window.location.href);
+                    if (url.searchParams.has('code')) {
+                        url.searchParams.delete('code');
+                        window.history.replaceState({}, document.title, url.toString());
+                    }
+                    return;
+                }
+
+                if (event === 'SIGNED_OUT') {
+                    localStorage.removeItem("usuario");
+                    loadingOverlay.style.display = "none";
+                    overlayUsuario.style.display = "flex";
+                    cerrarSesion.style.display = "none";
+                    nombreUsuarioDisplay.style.display = "none";
                 }
             });
+
+            // Fallback: si no hay evento (sesión ya persistida o usuario local),
+            // getSession() lo resuelve directamente.
+            const { data: { session } } = await supabaseClient.auth.getSession();
+
+            if (session?.user) {
+                // Sesión activa ya procesada (el onAuthStateChange ya lo maneja,
+                // pero por si acá llegamos antes, lo cubrimos igual)
+                loadingOverlay.style.display = "none";
+                const nombre = session.user.user_metadata?.full_name
+                            || session.user.user_metadata?.name
+                            || session.user.email?.split("@")[0]
+                            || "Usuario";
+                localStorage.setItem("usuario", nombre);
+                mostrarInterfazLogueado(nombre);
+            } else {
+                // Sin sesión Supabase: revisar localStorage (usuario sin cuenta)
+                const usuarioLocal = localStorage.getItem("usuario");
+                loadingOverlay.style.display = "none";
+                if (usuarioLocal) {
+                    mostrarInterfazLogueado(usuarioLocal);
+                } else {
+                    overlayUsuario.style.display = "flex";
+                }
+            }
         }
 
         // ========================== NOMBRE LOCAL ==========================
