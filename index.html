@@ -195,11 +195,17 @@
 const supabase = window.supabase.createClient(
   "https://tapctytjeknttbmoqflx.supabase.co",
   "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP"
+);
 
+// 👇 FUNCIÓN SEPARADA (esto es clave)
 async function loginConGoogle() {
-  await supabase.auth.signInWithOAuth({
+  const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google'
   });
+
+  if (error) {
+    console.error("Error login:", error);
+  }
 }
     
 );
