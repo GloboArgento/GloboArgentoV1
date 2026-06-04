@@ -143,6 +143,9 @@
     <!-- Botones -->
     <div id="botonTienda">Tienda 🛒</div>
     <div id="cerrarSesion">Cerrar sesión</div>
+    <button onclick="loginConGoogle()">
+  Iniciar sesión con Google
+</button>
 
     <!-- Nombre de usuario -->
     <div id="nombreUsuarioDisplay"></div>
@@ -192,6 +195,13 @@
 const supabase = window.supabase.createClient(
   "https://tapctytjeknttbmoqflx.supabase.co",
   "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP"
+
+async function loginConGoogle() {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google'
+  });
+}
+    
 );
         
         // ========================== USUARIO ==========================
