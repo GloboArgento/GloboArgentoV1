@@ -197,18 +197,16 @@ const supabase = window.supabase.createClient(
   "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP"
 );
 
-// 👇 FUNCIÓN SEPARADA (esto es clave)
+// 👇 ESTA FUNCIÓN VA AFUERA
 async function loginConGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google'
   });
 
   if (error) {
-    console.error("Error login:", error);
+    console.error(error);
   }
 }
-    
-);
         
         // ========================== USUARIO ==========================
         const overlayUsuario = document.getElementById("overlayUsuario");
