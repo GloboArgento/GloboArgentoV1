@@ -127,7 +127,7 @@
             font-weight: bold;
             font-size: 18px;
         }
-        .pos-1 { color: #D62222; }
+        .pos-1 { color: #FFD700; }
         .pos-2 { color: #C0C0C0; }
         .pos-3 { color: #CD7F32; }
 
@@ -193,12 +193,6 @@
             <div class="mi-mejor" id="miMejor"></div>
         </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab activo" id="tabGlobal">🌎 Global</button>
-            <button class="tab" id="tabPersonal">👤 Mis partidas</button>
-        </div>
-
         <!-- Tabla -->
         <table id="tablaRanking">
             <thead>
@@ -234,7 +228,6 @@
         );
 
         // ========================== ESTADO ==========================
-        let modoActual = 'global';   // 'global' | 'personal'
         let nombreUsuario = '';
 
         const tbody          = document.getElementById("tbodyRanking");
@@ -284,7 +277,7 @@
                 .from("Ranking")
                 .select("usuario, puntos, created_at")
                 .order("puntos", { ascending: false })
-                .limit(50);
+                .limit(10);  // solo top 10
 
             if (error) {
                 estadoMensaje.textContent = "❌ Error cargando el ranking. Intentá de nuevo.";
@@ -299,15 +292,13 @@
 
             estadoMensaje.style.display = "none";
 
-            // Mejor puntaje del usuario actual (para el panel de info)
             if (nombreUsuario) {
-                const misMejores = data.filter(r => r.usuario === nombreUsuario);
-                if (misMejores.length > 0) {
-                    const mejor = Math.max(...misMejores.map(r => r.puntos));
+                const miFila = data.find(r => r.usuario === nombreUsuario);
+                if (miFila) {
                     const posUsuario = data.findIndex(r => r.usuario === nombreUsuario) + 1;
-                    miMejorEl.textContent = `🏅 Mejor puntaje: ${mejor} pts · Posición: #${posUsuario}`;
+                    miMejorEl.textContent = `🏅 Puntaje total: ${miFila.puntos} pts · Posición: #${posUsuario}`;
                 } else {
-                    miMejorEl.textContent = "Todavía no jugaste ninguna partida.";
+                    miMejorEl.textContent = "Todavía no estás en el top 10.";
                 }
             }
 
@@ -332,76 +323,6 @@
                 tbody.appendChild(tr);
             });
         }
-
-        // ========================== CARGAR MIS PARTIDAS ==========================
-        async function cargarPersonal() {
-            if (!nombreUsuario) {
-                estadoMensaje.style.display = "block";
-                estadoMensaje.textContent = "Iniciá sesión o elegí un nombre para ver tus partidas.";
-                tbody.innerHTML = "";
-                return;
-            }
-
-            estadoMensaje.style.display = "block";
-            estadoMensaje.textContent = "Cargando tus partidas... ⏳";
-            tbody.innerHTML = "";
-
-            const { data, error } = await supabaseClient
-                .from("Ranking")
-                .select("usuario, puntos, created_at")
-                .eq("usuario", nombreUsuario)     // solo las del usuario actual
-                .order("puntos", { ascending: false })
-                .limit(30);
-
-            if (error) {
-                estadoMensaje.textContent = "❌ Error cargando tus partidas.";
-                console.error(error);
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                estadoMensaje.textContent = "Todavía no jugaste ninguna partida. ¡A jugar! 🎮";
-                return;
-            }
-
-            estadoMensaje.style.display = "none";
-
-            data.forEach((fila, idx) => {
-                const tr = document.createElement("tr");
-                tr.classList.add("es-yo");
-
-                const tdPos    = document.createElement("td");
-                const tdNombre = document.createElement("td");
-                const tdFecha  = document.createElement("td");
-                const tdPuntos = document.createElement("td");
-
-                tdPos.appendChild(posicion(idx + 1));
-                tdNombre.textContent = fila.usuario;
-                tdFecha.textContent  = formatearFecha(fila.created_at);
-                tdPuntos.innerHTML   = `<span class="puntos">${fila.puntos}</span>`;
-
-                tr.appendChild(tdPos);
-                tr.appendChild(tdNombre);
-                tr.appendChild(tdFecha);
-                tr.appendChild(tdPuntos);
-                tbody.appendChild(tr);
-            });
-        }
-
-        // ========================== TABS ==========================
-        document.getElementById("tabGlobal").addEventListener("click", () => {
-            modoActual = 'global';
-            document.getElementById("tabGlobal").classList.add("activo");
-            document.getElementById("tabPersonal").classList.remove("activo");
-            cargarGlobal();
-        });
-
-        document.getElementById("tabPersonal").addEventListener("click", () => {
-            modoActual = 'personal';
-            document.getElementById("tabPersonal").classList.add("activo");
-            document.getElementById("tabGlobal").classList.remove("activo");
-            cargarPersonal();
-        });
 
         // ========================== VOLVER ==========================
         document.getElementById("btnVolver").addEventListener("click", () => {
