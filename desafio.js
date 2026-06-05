@@ -1,3 +1,55 @@
+// -------------------- SUPABASE --------------------
+const { createClient } = supabase;
+const supabaseClient = createClient(
+    "https://tapctytjeknttbmoqflx.supabase.co",
+    "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+    {
+        auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            detectSessionInUrl: true,
+            storage: window.localStorage
+        }
+    }
+);
+
+// -------------------- FUNCIÓN COMPARTIDA: SUMAR PUNTOS AL RANKING --------------------
+async function sumarPuntosRanking(puntosNuevos) {
+    if (puntosNuevos <= 0) return;
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const nombreUsuario = session?.user
+        ? (session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "Anónimo")
+        : (localStorage.getItem("usuario") || "Anónimo");
+
+    const { data: existente, error: errorBusqueda } = await supabaseClient
+        .from("Ranking")
+        .select("puntos")
+        .eq("usuario", nombreUsuario)
+        .single();
+
+    if (errorBusqueda && errorBusqueda.code !== "PGRST116") {
+        console.error("Error buscando usuario en ranking:", errorBusqueda.message);
+        return;
+    }
+
+    if (existente) {
+        const { error } = await supabaseClient
+            .from("Ranking")
+            .update({ puntos: existente.puntos + puntosNuevos })
+            .eq("usuario", nombreUsuario);
+        if (error) console.error("Error actualizando ranking:", error.message);
+        else console.log(`✅ Ranking actualizado: ${nombreUsuario} → +${puntosNuevos} (total: ${existente.puntos + puntosNuevos})`);
+    } else {
+        const { error } = await supabaseClient
+            .from("Ranking")
+            .insert({ usuario: nombreUsuario, puntos: puntosNuevos });
+        if (error) console.error("Error creando entrada en ranking:", error.message);
+        else console.log(`✅ Nuevo en ranking: ${nombreUsuario} → ${puntosNuevos} puntos`);
+    }
+}
+
+// -------------------- Lista de países --------------------
 const paises = [
     {nombre: "Argentina", pista:"Cuna del tango y del mate amargo"},
     {nombre: "Brasil", pista:"Fútbol, carnaval y samba que contagia"},
@@ -35,15 +87,15 @@ const paises = [
     {nombre: "Trinidad y Tobago", pista:"Carnaval y calipso vibrante"},
     {nombre: "Guyana", pista:"Selva amazónica y cataratas enormes"},
     {nombre: "Surinam", pista:"Diversidad cultural y naturaleza pura"},
-    {nombre: "París (sí, Francia extra)", pista:"Torre Eiffel y croissants"},
+    // Nota: eliminé "París (sí, Francia extra)" porque era un error en la lista original
 ];
 
 // -------------------- ELEMENTOS DEL DOM --------------------
-const inputRespuesta = document.getElementById("inputRespuesta");
-const botonEnviar = document.getElementById("botonEnviar");
-const mensajeDesafio = document.getElementById("mensajeDesafio");
-const pistaDesafio = document.getElementById("pistaDesafio");
-const cronometroSpan = document.getElementById("cronometro");
+const inputRespuesta  = document.getElementById("inputRespuesta");
+const botonEnviar     = document.getElementById("botonEnviar");
+const mensajeDesafio  = document.getElementById("mensajeDesafio");
+const pistaDesafio    = document.getElementById("pistaDesafio");
+const cronometroSpan  = document.getElementById("cronometro");
 cronometroSpan.style.position = "relative";
 
 // -------------------- MONEDAS --------------------
@@ -62,15 +114,15 @@ function mostrarMensaje(msg) {
     setTimeout(() => mensajeMoneda.style.opacity = "0", 1800);
 }
 
-function actualizarMonedasDisplay(animar = true){
+function actualizarMonedasDisplay(animar = true) {
     document.getElementById("cantidadMonedas").textContent = monedas;
-    if(animar){
+    if (animar) {
         monedaDiv.classList.add("monedaAnim");
         setTimeout(() => monedaDiv.classList.remove("monedaAnim"), 500);
     }
 }
 
-function sumarMonedas(cantidad){
+function sumarMonedas(cantidad) {
     monedas += cantidad;
     localStorage.setItem('monedas', monedas);
     actualizarMonedasDisplay(true);
@@ -81,21 +133,15 @@ function normalizar(texto) {
     return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
-// Segundos extra comprados
 let segundosExtra = parseInt(localStorage.getItem('segundosExtra')) || 0;
-
-// -------------------- CONTROL DE DESAFÍOS --------------------
-// Clonamos el array para ir eliminando los que ya aparecieron
 let paisesRestantes = [...paises];
-
 let desafioHoy = null;
 let tiempoBase = 15;
 let tiempo = tiempoBase;
 let timer = null;
 
-// Función para mostrar animación de +segundosExtra
 function mostrarAnimacionSegundosExtra(extra) {
-    if(extra <= 0) return;
+    if (extra <= 0) return;
     const animSpan = document.createElement("span");
     animSpan.textContent = `+${extra}s`;
     animSpan.style.position = "absolute";
@@ -107,20 +153,14 @@ function mostrarAnimacionSegundosExtra(extra) {
     animSpan.style.fontWeight = "bold";
     animSpan.style.transition = "all 1s ease-out";
     cronometroSpan.appendChild(animSpan);
-
-    setTimeout(() => {
-        animSpan.style.top = "-50px";
-        animSpan.style.opacity = "0";
-    }, 50);
-
+    setTimeout(() => { animSpan.style.top = "-50px"; animSpan.style.opacity = "0"; }, 50);
     setTimeout(() => animSpan.remove(), 1100);
 }
 
-// Función para actualizar el cronómetro y colores
 function actualizarColorCronometro() {
-    if (tiempo > 10) cronometroSpan.style.color = "#28a745"; 
-    else if (tiempo > 5) cronometroSpan.style.color = "#ffc107"; 
-    else cronometroSpan.style.color = "#dc3545"; 
+    if (tiempo > 10) cronometroSpan.style.color = "#28a745";
+    else if (tiempo > 5) cronometroSpan.style.color = "#ffc107";
+    else cronometroSpan.style.color = "#dc3545";
 }
 
 function actualizarCronometro() {
@@ -136,24 +176,21 @@ function actualizarCronometro() {
     }
 }
 
-// Selecciona un nuevo desafío de los restantes
 function nuevoDesafio() {
-    if(paisesRestantes.length === 0){
+    if (paisesRestantes.length === 0) {
         juegoTerminado();
         return;
     }
 
-    // Elegir aleatorio
     const idx = Math.floor(Math.random() * paisesRestantes.length);
     desafioHoy = paisesRestantes[idx];
-    paisesRestantes.splice(idx,1); // eliminar para que no se repita
+    paisesRestantes.splice(idx, 1);
 
     pistaDesafio.textContent = desafioHoy.pista;
 
-    // Reset de cronómetro
     clearInterval(timer);
     tiempo = tiempoBase;
-    if(segundosExtra > 0){
+    if (segundosExtra > 0) {
         tiempo += segundosExtra;
         mostrarAnimacionSegundosExtra(segundosExtra);
         segundosExtra = 0;
@@ -169,47 +206,43 @@ function nuevoDesafio() {
     timer = setInterval(actualizarCronometro, 1000);
 }
 
-// Cuando se acaban las pistas
 function juegoTerminado() {
     clearInterval(timer);
     cronometroSpan.textContent = "0";
     botonEnviar.disabled = true;
     inputRespuesta.disabled = true;
 
-    mensajeDesafio.innerHTML = `
-        🎉 <span style="color:#e84393; font-size:24px;">¡Juego Terminado!</span> 🎉
-    `;
+    mensajeDesafio.innerHTML = `🎉 <span style="color:#e84393; font-size:24px;">¡Juego Terminado!</span> 🎉`;
     mensajeDesafio.style.fontWeight = "bold";
     mensajeDesafio.style.fontSize = "24px";
     mensajeDesafio.style.textAlign = "center";
     mensajeDesafio.style.animation = "juegoTerminado 1s ease infinite alternate";
 
-    // Animación CSS simple
     const style = document.createElement('style');
     style.innerHTML = `
     @keyframes juegoTerminado {
-        0% { transform: scale(1); color: #e84393; }
-        50% { transform: scale(1.2); color: #fdcb6e; }
-        100% { transform: scale(1); color: #e84393; }
+        0%   { transform: scale(1);   color: #e84393; }
+        50%  { transform: scale(1.2); color: #fdcb6e; }
+        100% { transform: scale(1);   color: #e84393; }
     }`;
     document.head.appendChild(style);
 }
 
-// Usuarios en localStorage
 let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [{ totalPartidas:0, totalAciertos:0, totalFallos:0, totalDesafios:0 }];
 let u = usuarios[0];
 
-// Comprobar respuesta
 function comprobarDesafio() {
     clearInterval(timer);
     const respuesta = inputRespuesta.value.trim();
-    if(!respuesta) return;
+    if (!respuesta) return;
 
-    if(normalizar(respuesta) === normalizar(desafioHoy.nombre)){
+    if (normalizar(respuesta) === normalizar(desafioHoy.nombre)) {
         mensajeDesafio.textContent = "¡Correcto! 🎉";
         mensajeDesafio.style.color = "green";
         u.totalDesafios = (u.totalDesafios || 0) + 1;
         sumarMonedas(10);
+        // +10 puntos al ranking por cada desafío correcto
+        sumarPuntosRanking(10);
     } else {
         mensajeDesafio.textContent = `Incorrecto ❌ Era ${desafioHoy.nombre}`;
         mensajeDesafio.style.color = "red";
@@ -222,14 +255,13 @@ function comprobarDesafio() {
 
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
 
-    // Pasar al siguiente desafío
     setTimeout(nuevoDesafio, 1500);
 }
 
 // -------------------- EVENTOS --------------------
 botonEnviar.addEventListener("click", comprobarDesafio);
 inputRespuesta.addEventListener("keydown", (e) => {
-    if(e.key === "Enter") comprobarDesafio();
+    if (e.key === "Enter") comprobarDesafio();
 });
 
 // -------------------- INICIALIZACIÓN --------------------
