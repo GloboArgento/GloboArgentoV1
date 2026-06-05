@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jugar - Globo Argento</title>
 <link rel="stylesheet" href="style.css">
+
+<!-- ✅ Supabase DEBE cargarse antes que juego.js -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
     /* Cuadro final centrado */
     #estadisticas {
@@ -35,7 +39,6 @@
         transform: scale(1.05);
         background-color: #357ABD;
     }
-
     /* Botones de ayuda (50/50 y pista) */
     .boton-ayuda {
         display: inline-block;
@@ -53,7 +56,6 @@
         transform: scale(1.05);
         background-color: #FFC107;
     }
-
     /* Botones de opciones */
     #opciones button {
         display: block;
@@ -78,7 +80,6 @@
         transform: scale(0.98);
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-
     /* Recuadro de pista */
     #pista {
         background: #fff3cd;
@@ -91,9 +92,8 @@
         color: #856404;
         text-align: center;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        display: none; /* solo aparece cuando se usa la pista */
+        display: none;
     }
-
     /* Corazones de vidas */
     #vidas {
         text-align: center;
@@ -109,31 +109,24 @@
         transform: scale(0);
         opacity: 0;
     }
-
 </style>
 </head>
 <body>
 <h1>Adivina la bandera</h1>
-
 <div id="bandera-container">
     <img id="bandera" src="" alt="Bandera" width="220">
 </div>
-
 <!-- Botones de ayuda -->
 <div id="ayudas">
     <button id="boton5050" class="boton-ayuda">¡Reduzcamos!</button>
     <button id="botonPista" class="boton-ayuda">💡 Pista</button>
 </div>
-
 <!-- Corazones de vidas -->
 <div id="vidas"></div>
-
 <!-- Recuadro de pista -->
 <div id="pista"></div>
-
 <div id="opciones"></div>
 <p id="puntaje">Puntaje: <span id="contador">0</span></p>
-
 <div id="estadisticas">
     <h2>Resultados de la partida</h2>
     <p>Aciertos: <span id="aciertos">0</span></p>
@@ -142,6 +135,7 @@
     <button id="volverMenu">Volver al menú</button>
 </div>
 
+<!-- ✅ juego.js DESPUÉS de Supabase -->
 <script src="juego.js"></script>
 </body>
 </html>
