@@ -1,5 +1,4 @@
 // -------------------- SUPABASE --------------------
-// Se inicializa primero para que esté disponible en todo el archivo
 const { createClient } = supabase;
 const supabaseClient = createClient(
     "https://tapctytjeknttbmoqflx.supabase.co",
@@ -13,6 +12,55 @@ const supabaseClient = createClient(
         }
     }
 );
+
+// -------------------- FUNCIÓN COMPARTIDA: SUMAR PUNTOS AL RANKING --------------------
+// Esta misma lógica la usan juego.js, emoji.js y desafio.js
+// Hace upsert: si el usuario ya existe suma los puntos, si no existe lo crea
+async function sumarPuntosRanking(puntosNuevos) {
+    if (puntosNuevos <= 0) return;
+
+    // Sin sesión de Supabase = juega sin cuenta, no sube al ranking
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session?.user) {
+        console.log("Sin cuenta — los puntos no se guardan en el ranking.");
+        return;
+    }
+
+    const nombreUsuario = session.user.user_metadata?.full_name
+        || session.user.user_metadata?.name
+        || session.user.email?.split("@")[0]
+        || "Anónimo";
+
+    // 1. Buscar si ya existe el usuario en el ranking
+    const { data: existente, error: errorBusqueda } = await supabaseClient
+        .from("Ranking")
+        .select("puntos")
+        .eq("usuario", nombreUsuario)
+        .single();
+
+    if (errorBusqueda && errorBusqueda.code !== "PGRST116") {
+        // PGRST116 = no encontró fila, eso es normal. Otro error sí es un problema.
+        console.error("Error buscando usuario en ranking:", errorBusqueda.message);
+        return;
+    }
+
+    if (existente) {
+        // Ya existe: sumar los puntos nuevos al total
+        const { error } = await supabaseClient
+            .from("Ranking")
+            .update({ puntos: existente.puntos + puntosNuevos })
+            .eq("usuario", nombreUsuario);
+        if (error) console.error("Error actualizando ranking:", error.message);
+        else console.log(`✅ Ranking actualizado: ${nombreUsuario} → +${puntosNuevos} (total: ${existente.puntos + puntosNuevos})`);
+    } else {
+        // No existe: crear fila nueva
+        const { error } = await supabaseClient
+            .from("Ranking")
+            .insert({ usuario: nombreUsuario, puntos: puntosNuevos });
+        if (error) console.error("Error creando entrada en ranking:", error.message);
+        else console.log(`✅ Nuevo en ranking: ${nombreUsuario} → ${puntosNuevos} puntos`);
+    }
+}
 
 // -------------------- Lista de banderas --------------------
 const banderas = [
@@ -111,42 +159,6 @@ function gastarMonedas(cantidad) {
     } else {
         mostrarMensaje("❌ ¡Monedas insuficientes!");
         return false;
-    }
-}
-
-// -------------------- GUARDAR PUNTAJE EN SUPABASE --------------------
-async function guardarPuntajeEnRanking(puntaje) {
-    // Obtener nombre de usuario (Google o local)
-    const { data: { session } } = await supabaseClient.auth.getSession();
-
-    let nombreUsuario;
-    if (session?.user) {
-        // Usuario logueado con Google
-        nombreUsuario = session.user.user_metadata?.full_name
-                     || session.user.user_metadata?.name
-                     || session.user.email?.split("@")[0]
-                     || "Anónimo";
-    } else {
-        // Usuario local (sin cuenta)
-        nombreUsuario = localStorage.getItem("usuario") || "Anónimo";
-    }
-
-    // Solo guardar si el puntaje es mayor a 0 (no tiene sentido guardar partidas vacías)
-    if (puntaje <= 0) return;
-
-    const { error } = await supabaseClient
-        .from("Ranking")
-        .insert({
-            usuario: nombreUsuario,
-            puntos: puntaje
-            // created_at lo genera Supabase automáticamente
-        });
-
-    if (error) {
-        console.error("Error guardando puntaje:", error.message);
-        // No mostramos error al usuario, el juego sigue funcionando igual
-    } else {
-        console.log(`✅ Puntaje guardado: ${nombreUsuario} → ${puntaje} puntos`);
     }
 }
 
@@ -285,10 +297,8 @@ botonPista.onclick = () => {
 };
 
 // -------------------- Estadísticas --------------------
-// ⚠️ IMPORTANTE: esta función es async porque necesita esperar el guardado en Supabase
 async function mostrarEstadisticas() {
     const fallos = intentos - aciertos;
-    const puntajeFinal = aciertos; // el puntaje son los aciertos
 
     u.totalPartidas++;
     u.totalAciertos += aciertos;
@@ -297,15 +307,15 @@ async function mostrarEstadisticas() {
 
     document.getElementById("aciertos").textContent = aciertos;
     document.getElementById("fallos").textContent = fallos;
-    document.getElementById("puntajeFinal").textContent = puntajeFinal;
+    document.getElementById("puntajeFinal").textContent = aciertos;
 
     estadisticasDiv.style.display = "flex";
     estadisticasDiv.style.flexDirection = "column";
     estadisticasDiv.style.alignItems = "center";
     estadisticasDiv.style.justifyContent = "center";
 
-    // Guardar en Supabase (no bloqueante: si falla, el juego sigue andando)
-    guardarPuntajeEnRanking(puntajeFinal);
+    // Sumar aciertos de esta partida al total acumulado en Supabase
+    sumarPuntosRanking(aciertos);
 
     // Reiniciar para la próxima partida
     currentIndex = 0;
