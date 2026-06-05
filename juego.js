@@ -135,7 +135,7 @@ async function guardarPuntajeEnRanking(puntaje) {
     if (puntaje <= 0) return;
 
     const { error } = await supabaseClient
-        .from("ranking")           // nombre de tu tabla en Supabase
+        .from("Ranking")
         .insert({
             usuario: nombreUsuario,
             puntos: puntaje
