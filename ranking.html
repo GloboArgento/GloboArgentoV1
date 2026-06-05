@@ -3,27 +3,424 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranking - Juego de Banderas</title>
+    <title>Ranking - Globo Argento</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
-        #mantenimiento {
-            color: red;
-            font-size: 28px;
-            font-weight: bold;
-            text-align: center;
-            margin-top: 100px;
-            animation: parpadeo 1s infinite;
+        /* ===== Layout general ===== */
+        body {
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
         }
-        @keyframes parpadeo {
-            0%,100% {opacity:1;}
-            50% {opacity:0;}
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 32px;
+            margin: 20px 0 5px;
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%   { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            50%  { text-shadow: 0 0 20px #4A90E2, 0 0 30px #50E3C2; }
+            100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+        }
+
+        /* ===== Botón volver ===== */
+        #btnVolver {
+            position: fixed;
+            top: 12px; left: 12px;
+            background: #FFD700;
+            color: #000;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        #btnVolver:hover { transform: scale(1.08); }
+
+        /* ===== Contenedor del ranking ===== */
+        #rankingContainer {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px auto 40px;
+        }
+
+        /* ===== Tabs: Global / Personal ===== */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 8px 24px;
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        .tab.activo {
+            background: #4A90E2;
+            border-color: #4A90E2;
+            box-shadow: 0 0 12px rgba(74,144,226,0.6);
+        }
+        .tab:hover:not(.activo) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        /* ===== Tabla ===== */
+        #tablaRanking {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #tablaRanking thead tr {
+            background: rgba(74, 144, 226, 0.3);
+            color: #fff;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        #tablaRanking thead th {
+            padding: 12px 16px;
+            text-align: left;
+        }
+        #tablaRanking thead th:last-child { text-align: right; }
+
+        #tablaRanking tbody tr {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: background 0.15s;
+        }
+        #tablaRanking tbody tr:hover {
+            background: rgba(255,255,255,0.07);
+        }
+
+        /* Fila del usuario logueado */
+        #tablaRanking tbody tr.es-yo {
+            background: rgba(80, 227, 194, 0.15);
+        }
+        #tablaRanking tbody tr.es-yo td {
+            color: #50E3C2;
+            font-weight: bold;
+        }
+
+        #tablaRanking tbody td {
+            padding: 13px 16px;
+            color: #eee;
+            font-size: 15px;
+        }
+        #tablaRanking tbody td:last-child { text-align: right; }
+
+        /* Posiciones con medalla */
+        .pos {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .pos-1 { color: #FFD700; }
+        .pos-2 { color: #C0C0C0; }
+        .pos-3 { color: #CD7F32; }
+
+        /* Puntaje destacado */
+        .puntos {
+            font-weight: bold;
+            color: #4A90E2;
+            font-size: 16px;
+        }
+        .es-yo .puntos { color: #50E3C2; }
+
+        /* ===== Estado vacío / cargando / error ===== */
+        #estadoMensaje {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            padding: 40px 0;
+            font-size: 16px;
+        }
+
+        /* ===== Info usuario actual ===== */
+        #miInfo {
+            background: linear-gradient(135deg, rgba(74,144,226,0.2), rgba(80,227,194,0.2));
+            border: 1px solid rgba(80,227,194,0.3);
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            color: #fff;
+            display: none;
+        }
+        #miInfo .mi-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 4px; }
+        #miInfo .mi-nombre { font-size: 18px; font-weight: bold; color: #50E3C2; }
+        #miInfo .mi-mejor { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+        /* ===== Skeleton loader ===== */
+        .skeleton {
+            background: linear-gradient(90deg,
+                rgba(255,255,255,0.05) 25%,
+                rgba(255,255,255,0.12) 50%,
+                rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.2s infinite;
+            border-radius: 6px;
+            height: 16px;
+            display: inline-block;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
 </head>
 <body>
-    <div id="mantenimiento">🚧 Ranking en mantenimiento 🚧</div>
-    <div style="text-align:center; margin-top:50px;">
-        <a href="index.html" class="boton-menu">Volver al Menú</a>
+
+    <button id="btnVolver">← Volver</button>
+    <h1>🏆 Ranking Global</h1>
+
+    <div id="rankingContainer">
+
+        <!-- Info del usuario actual -->
+        <div id="miInfo">
+            <div class="mi-label">Jugando como</div>
+            <div class="mi-nombre" id="miNombre">—</div>
+            <div class="mi-mejor" id="miMejor"></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab activo" id="tabGlobal">🌎 Global</button>
+            <button class="tab" id="tabPersonal">👤 Mis partidas</button>
+        </div>
+
+        <!-- Tabla -->
+        <table id="tablaRanking">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Jugador</th>
+                    <th>Fecha</th>
+                    <th>Puntos</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyRanking">
+                <!-- filas dinámicas -->
+            </tbody>
+        </table>
+
+        <div id="estadoMensaje">Cargando ranking... ⏳</div>
     </div>
+
+    <script>
+        // ========================== SUPABASE ==========================
+        const { createClient } = supabase;
+        const supabaseClient = createClient(
+            "https://tapctytjeknttbmoqflx.supabase.co",
+            "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+            {
+                auth: {
+                    flowType: 'pkce',
+                    persistSession: true,
+                    detectSessionInUrl: true,
+                    storage: window.localStorage
+                }
+            }
+        );
+
+        // ========================== ESTADO ==========================
+        let modoActual = 'global';   // 'global' | 'personal'
+        let nombreUsuario = '';
+
+        const tbody          = document.getElementById("tbodyRanking");
+        const estadoMensaje  = document.getElementById("estadoMensaje");
+        const miInfoDiv      = document.getElementById("miInfo");
+        const miNombreEl     = document.getElementById("miNombre");
+        const miMejorEl      = document.getElementById("miMejor");
+
+        // ========================== OBTENER USUARIO ==========================
+        async function obtenerNombreUsuario() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session?.user) {
+                return session.user.user_metadata?.full_name
+                    || session.user.user_metadata?.name
+                    || session.user.email?.split("@")[0]
+                    || "Anónimo";
+            }
+            return localStorage.getItem("usuario") || "";
+        }
+
+        // ========================== FORMATEAR FECHA ==========================
+        function formatearFecha(isoStr) {
+            const d = new Date(isoStr);
+            return d.toLocaleDateString("es-AR", {
+                day: "2-digit", month: "2-digit", year: "2-digit"
+            });
+        }
+
+        // ========================== POSICIÓN CON MEDALLA ==========================
+        function posicion(pos) {
+            const span = document.createElement("span");
+            span.className = "pos";
+            if (pos === 1) { span.classList.add("pos-1"); span.textContent = "🥇"; }
+            else if (pos === 2) { span.classList.add("pos-2"); span.textContent = "🥈"; }
+            else if (pos === 3) { span.classList.add("pos-3"); span.textContent = "🥉"; }
+            else { span.textContent = `#${pos}`; }
+            return span;
+        }
+
+        // ========================== CARGAR RANKING GLOBAL ==========================
+        async function cargarGlobal() {
+            estadoMensaje.style.display = "block";
+            estadoMensaje.textContent = "Cargando ranking... ⏳";
+            tbody.innerHTML = "";
+
+            const { data, error } = await supabaseClient
+                .from("ranking")
+                .select("usuario, puntos, created_at")
+                .order("puntos", { ascending: false })
+                .limit(50);
+
+            if (error) {
+                estadoMensaje.textContent = "❌ Error cargando el ranking. Intentá de nuevo.";
+                console.error(error);
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                estadoMensaje.textContent = "Aún no hay partidas registradas. ¡Sé el primero! 🎮";
+                return;
+            }
+
+            estadoMensaje.style.display = "none";
+
+            // Mejor puntaje del usuario actual (para el panel de info)
+            if (nombreUsuario) {
+                const misMejores = data.filter(r => r.usuario === nombreUsuario);
+                if (misMejores.length > 0) {
+                    const mejor = Math.max(...misMejores.map(r => r.puntos));
+                    const posUsuario = data.findIndex(r => r.usuario === nombreUsuario) + 1;
+                    miMejorEl.textContent = `🏅 Mejor puntaje: ${mejor} pts · Posición: #${posUsuario}`;
+                } else {
+                    miMejorEl.textContent = "Todavía no jugaste ninguna partida.";
+                }
+            }
+
+            data.forEach((fila, idx) => {
+                const tr = document.createElement("tr");
+                if (fila.usuario === nombreUsuario) tr.classList.add("es-yo");
+
+                const tdPos    = document.createElement("td");
+                const tdNombre = document.createElement("td");
+                const tdFecha  = document.createElement("td");
+                const tdPuntos = document.createElement("td");
+
+                tdPos.appendChild(posicion(idx + 1));
+                tdNombre.textContent = fila.usuario;
+                tdFecha.textContent  = formatearFecha(fila.created_at);
+                tdPuntos.innerHTML   = `<span class="puntos">${fila.puntos}</span>`;
+
+                tr.appendChild(tdPos);
+                tr.appendChild(tdNombre);
+                tr.appendChild(tdFecha);
+                tr.appendChild(tdPuntos);
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ========================== CARGAR MIS PARTIDAS ==========================
+        async function cargarPersonal() {
+            if (!nombreUsuario) {
+                estadoMensaje.style.display = "block";
+                estadoMensaje.textContent = "Iniciá sesión o elegí un nombre para ver tus partidas.";
+                tbody.innerHTML = "";
+                return;
+            }
+
+            estadoMensaje.style.display = "block";
+            estadoMensaje.textContent = "Cargando tus partidas... ⏳";
+            tbody.innerHTML = "";
+
+            const { data, error } = await supabaseClient
+                .from("ranking")
+                .select("usuario, puntos, created_at")
+                .eq("usuario", nombreUsuario)     // solo las del usuario actual
+                .order("puntos", { ascending: false })
+                .limit(30);
+
+            if (error) {
+                estadoMensaje.textContent = "❌ Error cargando tus partidas.";
+                console.error(error);
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                estadoMensaje.textContent = "Todavía no jugaste ninguna partida. ¡A jugar! 🎮";
+                return;
+            }
+
+            estadoMensaje.style.display = "none";
+
+            data.forEach((fila, idx) => {
+                const tr = document.createElement("tr");
+                tr.classList.add("es-yo");
+
+                const tdPos    = document.createElement("td");
+                const tdNombre = document.createElement("td");
+                const tdFecha  = document.createElement("td");
+                const tdPuntos = document.createElement("td");
+
+                tdPos.appendChild(posicion(idx + 1));
+                tdNombre.textContent = fila.usuario;
+                tdFecha.textContent  = formatearFecha(fila.created_at);
+                tdPuntos.innerHTML   = `<span class="puntos">${fila.puntos}</span>`;
+
+                tr.appendChild(tdPos);
+                tr.appendChild(tdNombre);
+                tr.appendChild(tdFecha);
+                tr.appendChild(tdPuntos);
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ========================== TABS ==========================
+        document.getElementById("tabGlobal").addEventListener("click", () => {
+            modoActual = 'global';
+            document.getElementById("tabGlobal").classList.add("activo");
+            document.getElementById("tabPersonal").classList.remove("activo");
+            cargarGlobal();
+        });
+
+        document.getElementById("tabPersonal").addEventListener("click", () => {
+            modoActual = 'personal';
+            document.getElementById("tabPersonal").classList.add("activo");
+            document.getElementById("tabGlobal").classList.remove("activo");
+            cargarPersonal();
+        });
+
+        // ========================== VOLVER ==========================
+        document.getElementById("btnVolver").addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+
+        // ========================== INICIALIZAR ==========================
+        async function inicializar() {
+            nombreUsuario = await obtenerNombreUsuario();
+
+            if (nombreUsuario) {
+                miInfoDiv.style.display = "block";
+                miNombreEl.textContent = nombreUsuario;
+            }
+
+            cargarGlobal();
+        }
+
+        inicializar();
+    </script>
 </body>
 </html>
