@@ -1,3 +1,19 @@
+// -------------------- SUPABASE --------------------
+// Se inicializa primero para que esté disponible en todo el archivo
+const { createClient } = supabase;
+const supabaseClient = createClient(
+    "https://tapctytjeknttbmoqflx.supabase.co",
+    "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+    {
+        auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            detectSessionInUrl: true,
+            storage: window.localStorage
+        }
+    }
+);
+
 // -------------------- Lista de banderas --------------------
 const banderas = [
     { pais: "Argentina", img: "https://flagcdn.com/w160/ar.png", pista: "Fútbol, tango y mate." },
@@ -37,9 +53,8 @@ let currentIndex = 0;
 let aciertos = 0;
 let intentos = 0;
 
-// Vidas base y extra
-const vidasBaseInicial = 3; // Siempre 3 vidas base
-let vidasBase = vidasBaseInicial; // vidas base que quedan
+const vidasBaseInicial = 3;
+let vidasBase = vidasBaseInicial;
 let vidasExtra = parseInt(localStorage.getItem('vidasExtra')) || 0;
 let vidas = vidasBase + vidasExtra;
 
@@ -47,12 +62,12 @@ let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [{ totalPartidas:
 let u = usuarios[0];
 
 const estadisticasDiv = document.getElementById("estadisticas");
-const boton5050 = document.getElementById("boton5050");
-const botonPista = document.getElementById("botonPista");
-const pistaDiv = document.getElementById("pista");
-const opcionesDiv = document.getElementById("opciones");
-const volverMenuBtn = document.getElementById("volverMenu");
-const vidasDiv = document.getElementById("vidas");
+const boton5050      = document.getElementById("boton5050");
+const botonPista     = document.getElementById("botonPista");
+const pistaDiv       = document.getElementById("pista");
+const opcionesDiv    = document.getElementById("opciones");
+const volverMenuBtn  = document.getElementById("volverMenu");
+const vidasDiv       = document.getElementById("vidas");
 
 // -------------------- SISTEMA DE MONEDAS --------------------
 let monedas = parseInt(localStorage.getItem('monedas')) || 0;
@@ -69,15 +84,13 @@ document.body.appendChild(mensajeMoneda);
 function mostrarMensaje(msg) {
     mensajeMoneda.textContent = msg;
     mensajeMoneda.style.opacity = "1";
-    setTimeout(() => {
-        mensajeMoneda.style.opacity = "0";
-    }, 1800);
+    setTimeout(() => { mensajeMoneda.style.opacity = "0"; }, 1800);
 }
 
 function actualizarMonedasDisplay(animar = true) {
     const cantidadSpan = document.getElementById("cantidadMonedas");
     cantidadSpan.textContent = monedas;
-    if(animar){
+    if (animar) {
         monedaDiv.classList.add("monedaAnim");
         setTimeout(() => monedaDiv.classList.remove("monedaAnim"), 500);
     }
@@ -101,11 +114,46 @@ function gastarMonedas(cantidad) {
     }
 }
 
+// -------------------- GUARDAR PUNTAJE EN SUPABASE --------------------
+async function guardarPuntajeEnRanking(puntaje) {
+    // Obtener nombre de usuario (Google o local)
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    let nombreUsuario;
+    if (session?.user) {
+        // Usuario logueado con Google
+        nombreUsuario = session.user.user_metadata?.full_name
+                     || session.user.user_metadata?.name
+                     || session.user.email?.split("@")[0]
+                     || "Anónimo";
+    } else {
+        // Usuario local (sin cuenta)
+        nombreUsuario = localStorage.getItem("usuario") || "Anónimo";
+    }
+
+    // Solo guardar si el puntaje es mayor a 0 (no tiene sentido guardar partidas vacías)
+    if (puntaje <= 0) return;
+
+    const { error } = await supabaseClient
+        .from("ranking")           // nombre de tu tabla en Supabase
+        .insert({
+            usuario: nombreUsuario,
+            puntos: puntaje
+            // created_at lo genera Supabase automáticamente
+        });
+
+    if (error) {
+        console.error("Error guardando puntaje:", error.message);
+        // No mostramos error al usuario, el juego sigue funcionando igual
+    } else {
+        console.log(`✅ Puntaje guardado: ${nombreUsuario} → ${puntaje} puntos`);
+    }
+}
+
 // -------------------- Actualizar vidas --------------------
 function actualizarVidas() {
     vidasDiv.innerHTML = "";
 
-    // Vidas base
     for (let i = 0; i < vidasBase; i++) {
         const heart = document.createElement("span");
         heart.className = "corazon";
@@ -118,8 +166,6 @@ function actualizarVidas() {
         heartPerdida.textContent = "🖤";
         vidasDiv.appendChild(heartPerdida);
     }
-
-    // Vidas extra
     for (let i = 0; i < vidasExtra; i++) {
         const heartExtra = document.createElement("span");
         heartExtra.className = "corazonExtra";
@@ -175,14 +221,12 @@ function mostrarPregunta() {
                     correctBtn.style.boxShadow = "none";
                 }, 600);
 
-                // Quitar vida extra primero si hay
                 if (vidasExtra > 0) {
                     vidasExtra--;
                     localStorage.setItem('vidasExtra', vidasExtra);
                 } else if (vidasBase > 0) {
                     vidasBase--;
                 }
-
                 vidas--;
             }
 
@@ -215,7 +259,7 @@ function mostrarPregunta() {
 
 // -------------------- Botones de ayuda --------------------
 boton5050.onclick = () => {
-    if(!gastarMonedas(15)) return;
+    if (!gastarMonedas(15)) return;
     const botones = [...opcionesDiv.querySelectorAll("button")];
     const correctBtn = botones.find(b => b.textContent === banderasMezcladas[currentIndex].pais);
     const incorrectBtns = botones.filter(b => b.textContent !== banderasMezcladas[currentIndex].pais);
@@ -233,7 +277,7 @@ boton5050.onclick = () => {
 };
 
 botonPista.onclick = () => {
-    if(!gastarMonedas(15)) return;
+    if (!gastarMonedas(15)) return;
     const pregunta = banderasMezcladas[currentIndex];
     pistaDiv.textContent = pregunta.pista;
     pistaDiv.style.display = "block";
@@ -241,25 +285,29 @@ botonPista.onclick = () => {
 };
 
 // -------------------- Estadísticas --------------------
-function mostrarEstadisticas() {
+// ⚠️ IMPORTANTE: esta función es async porque necesita esperar el guardado en Supabase
+async function mostrarEstadisticas() {
     const fallos = intentos - aciertos;
+    const puntajeFinal = aciertos; // el puntaje son los aciertos
 
     u.totalPartidas++;
     u.totalAciertos += aciertos;
     u.totalFallos += fallos;
-
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
 
     document.getElementById("aciertos").textContent = aciertos;
     document.getElementById("fallos").textContent = fallos;
-    document.getElementById("puntajeFinal").textContent = aciertos;
+    document.getElementById("puntajeFinal").textContent = puntajeFinal;
 
     estadisticasDiv.style.display = "flex";
     estadisticasDiv.style.flexDirection = "column";
     estadisticasDiv.style.alignItems = "center";
     estadisticasDiv.style.justifyContent = "center";
 
-    // Reinicia juego
+    // Guardar en Supabase (no bloqueante: si falla, el juego sigue andando)
+    guardarPuntajeEnRanking(puntajeFinal);
+
+    // Reiniciar para la próxima partida
     currentIndex = 0;
     aciertos = 0;
     intentos = 0;
@@ -279,4 +327,3 @@ volverMenuBtn.addEventListener("click", () => {
 actualizarVidas();
 actualizarMonedasDisplay(false);
 mostrarPregunta();
-
