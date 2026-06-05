@@ -281,7 +281,7 @@
             tbody.innerHTML = "";
 
             const { data, error } = await supabaseClient
-                .from("ranking")
+                .from("Ranking")
                 .select("usuario, puntos, created_at")
                 .order("puntos", { ascending: false })
                 .limit(50);
@@ -347,7 +347,7 @@
             tbody.innerHTML = "";
 
             const { data, error } = await supabaseClient
-                .from("ranking")
+                .from("Ranking")
                 .select("usuario, puntos, created_at")
                 .eq("usuario", nombreUsuario)     // solo las del usuario actual
                 .order("puntos", { ascending: false })
