@@ -17,10 +17,17 @@ const supabaseClient = createClient(
 async function sumarPuntosRanking(puntosNuevos) {
     if (puntosNuevos <= 0) return;
 
+    // Sin sesión de Supabase = juega sin cuenta, no sube al ranking
     const { data: { session } } = await supabaseClient.auth.getSession();
-    const nombreUsuario = session?.user
-        ? (session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "Anónimo")
-        : (localStorage.getItem("usuario") || "Anónimo");
+    if (!session?.user) {
+        console.log("Sin cuenta — los puntos no se guardan en el ranking.");
+        return;
+    }
+
+    const nombreUsuario = session.user.user_metadata?.full_name
+        || session.user.user_metadata?.name
+        || session.user.email?.split("@")[0]
+        || "Anónimo";
 
     const { data: existente, error: errorBusqueda } = await supabaseClient
         .from("Ranking")
