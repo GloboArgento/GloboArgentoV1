@@ -1,3 +1,55 @@
+// -------------------- SUPABASE --------------------
+const { createClient } = supabase;
+const supabaseClient = createClient(
+    "https://tapctytjeknttbmoqflx.supabase.co",
+    "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+    {
+        auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            detectSessionInUrl: true,
+            storage: window.localStorage
+        }
+    }
+);
+
+// -------------------- FUNCIÓN COMPARTIDA: SUMAR PUNTOS AL RANKING --------------------
+async function sumarPuntosRanking(puntosNuevos) {
+    if (puntosNuevos <= 0) return;
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const nombreUsuario = session?.user
+        ? (session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "Anónimo")
+        : (localStorage.getItem("usuario") || "Anónimo");
+
+    const { data: existente, error: errorBusqueda } = await supabaseClient
+        .from("Ranking")
+        .select("puntos")
+        .eq("usuario", nombreUsuario)
+        .single();
+
+    if (errorBusqueda && errorBusqueda.code !== "PGRST116") {
+        console.error("Error buscando usuario en ranking:", errorBusqueda.message);
+        return;
+    }
+
+    if (existente) {
+        const { error } = await supabaseClient
+            .from("Ranking")
+            .update({ puntos: existente.puntos + puntosNuevos })
+            .eq("usuario", nombreUsuario);
+        if (error) console.error("Error actualizando ranking:", error.message);
+        else console.log(`✅ Ranking actualizado: ${nombreUsuario} → +${puntosNuevos} (total: ${existente.puntos + puntosNuevos})`);
+    } else {
+        const { error } = await supabaseClient
+            .from("Ranking")
+            .insert({ usuario: nombreUsuario, puntos: puntosNuevos });
+        if (error) console.error("Error creando entrada en ranking:", error.message);
+        else console.log(`✅ Nuevo en ranking: ${nombreUsuario} → ${puntosNuevos} puntos`);
+    }
+}
+
+// -------------------- Lista de países con emojis --------------------
 const paisesEmojis = [
     { pais: "Argentina", emojis: ["🥩","⚽","🍷","🌄","🧉"] },
     { pais: "Brasil", emojis: ["🥥","⚽","🎉","🌴","🥁"] },
@@ -21,7 +73,6 @@ const paisesEmojis = [
     { pais: "Nueva Zelanda", emojis: ["🏔️","🛶","🦘","🌿","⚽"] }
 ];
 
-// Mezcla el array usando Fisher-Yates
 function mezclarArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -30,7 +81,6 @@ function mezclarArray(array) {
     return array;
 }
 
-// Mezclamos los países al iniciar
 mezclarArray(paisesEmojis);
 
 let currentIndex = 0;
@@ -38,52 +88,44 @@ let tiempo = 15;
 let timer;
 
 const emojiContainer = document.getElementById("emoji-container");
-const inputPais = document.getElementById("inputPais");
+const inputPais      = document.getElementById("inputPais");
 const botonComprobar = document.getElementById("botonComprobar");
-const mensajeEmoji = document.getElementById("mensajeEmoji");
-const barraTiempo = document.getElementById("barraTiempo");
+const mensajeEmoji   = document.getElementById("mensajeEmoji");
+const barraTiempo    = document.getElementById("barraTiempo");
 
 // -------------------- SISTEMA DE MONEDAS --------------------
 let monedas = parseInt(localStorage.getItem('monedas')) || 0;
 
-// Crear elemento en la esquina superior derecha
 const monedaDiv = document.createElement("div");
 monedaDiv.id = "monedaDiv";
 monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">${monedas}</span>`;
 document.body.appendChild(monedaDiv);
 
-// Crear contenedor para mensajes personalizados
 const mensajeMoneda = document.createElement("div");
 mensajeMoneda.id = "mensajeMoneda";
 document.body.appendChild(mensajeMoneda);
 
-// Función para mostrar mensaje temporal
 function mostrarMensaje(msg) {
     mensajeMoneda.textContent = msg;
     mensajeMoneda.style.opacity = "1";
-    setTimeout(() => {
-        mensajeMoneda.style.opacity = "0";
-    }, 1800);
+    setTimeout(() => { mensajeMoneda.style.opacity = "0"; }, 1800);
 }
 
-// Función para actualizar la pantalla de monedas
 function actualizarMonedasDisplay(animar = true) {
     const cantidadSpan = document.getElementById("cantidadMonedas");
     cantidadSpan.textContent = monedas;
-    if(animar){
+    if (animar) {
         monedaDiv.classList.add("monedaAnim");
         setTimeout(() => monedaDiv.classList.remove("monedaAnim"), 500);
     }
 }
 
-// Función para sumar monedas
 function sumarMonedas(cantidad) {
     monedas += cantidad;
     localStorage.setItem('monedas', monedas);
     actualizarMonedasDisplay(true);
 }
 
-// Función para gastar monedas
 function gastarMonedas(cantidad) {
     if (monedas >= cantidad) {
         monedas -= cantidad;
@@ -97,17 +139,13 @@ function gastarMonedas(cantidad) {
 }
 
 // -------------------- Funciones del juego --------------------
-// Normalizar texto (sin tildes y minúsculas)
 function normalizar(texto) {
-    return texto
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
+    return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 function mostrarEmoji() {
     const item = paisesEmojis[currentIndex];
-    emojiContainer.textContent = item.emojis.join(" "); // Solo emojis
+    emojiContainer.textContent = item.emojis.join(" ");
     inputPais.value = "";
     mensajeEmoji.textContent = "";
     tiempo = 15;
@@ -118,13 +156,13 @@ function mostrarEmoji() {
     timer = setInterval(() => {
         tiempo--;
         barraTiempo.style.width = `${(tiempo / 15) * 100}%`;
-        barraTiempo.style.backgroundColor = `hsl(${(tiempo / 15) * 120}, 70%, 50%)`; // verde a rojo
-        if(tiempo <= 0) {
+        barraTiempo.style.backgroundColor = `hsl(${(tiempo / 15) * 120}, 70%, 50%)`;
+        if (tiempo <= 0) {
             clearInterval(timer);
             mensajeEmoji.textContent = `¡Se acabó el tiempo! Era ${item.pais}`;
             setTimeout(() => {
                 currentIndex++;
-                if(currentIndex >= paisesEmojis.length) currentIndex = 0;
+                if (currentIndex >= paisesEmojis.length) currentIndex = 0;
                 mostrarEmoji();
             }, 1500);
         }
@@ -133,32 +171,31 @@ function mostrarEmoji() {
 
 function comprobarRespuesta() {
     const respuesta = normalizar(inputPais.value.trim());
-    const correcto = normalizar(paisesEmojis[currentIndex].pais);
+    const correcto  = normalizar(paisesEmojis[currentIndex].pais);
 
     clearInterval(timer);
 
-    if(respuesta === correcto) {
+    if (respuesta === correcto) {
         mensajeEmoji.textContent = "✅ Correcto!";
-        sumarMonedas(8); // +8 monedas por adivinar emoji
+        sumarMonedas(8);
+        // +8 puntos al ranking por cada acierto en emoji
+        sumarPuntosRanking(8);
     } else {
         mensajeEmoji.textContent = `❌ Incorrecto! Era ${paisesEmojis[currentIndex].pais}`;
     }
 
     setTimeout(() => {
         currentIndex++;
-        if(currentIndex >= paisesEmojis.length) currentIndex = 0;
+        if (currentIndex >= paisesEmojis.length) currentIndex = 0;
         mostrarEmoji();
     }, 1500);
 }
 
 botonComprobar.onclick = comprobarRespuesta;
-
 inputPais.addEventListener("keydown", (e) => {
-    if(e.key === "Enter") {
-        comprobarRespuesta();
-    }
+    if (e.key === "Enter") comprobarRespuesta();
 });
 
-// -------------------- Inicializa el juego --------------------
+// -------------------- Inicializa --------------------
 actualizarMonedasDisplay(false);
 mostrarEmoji();
