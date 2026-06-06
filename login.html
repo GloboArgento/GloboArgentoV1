@@ -115,6 +115,31 @@
         .msg-ok    { color: #00b894; font-size: 13px; margin-top: 6px; min-height: 18px; }
         .msg-aviso { color: #aaa;    font-size: 12px; margin-top: 6px; text-align: center; }
 
+        /* Wrapper contraseña con ojito */
+        .pass-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .pass-wrapper input {
+            width: 100%;
+            margin-bottom: 0;
+            padding-right: 42px;
+        }
+        .pass-wrapper .ojito {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #aaa;
+            padding: 0;
+            line-height: 1;
+        }
+        .pass-wrapper .ojito:hover { color: #6c5ce7; }
+
         /* Loading spinner */
         #loadingEl {
             display: none;
@@ -154,9 +179,17 @@
     <div class="pantalla" id="p-email">
         <h3 id="tituloEmail" style="text-align:center; margin-bottom:14px; color:#1a1a2e;">Iniciar sesión</h3>
 
-        <input type="email"    id="inputEmail"     placeholder="Email">
-        <input type="password" id="inputPassword"  placeholder="Contraseña">
-        <input type="password" id="inputPassword2" placeholder="Repetir contraseña" style="display:none;">
+        <input type="email" id="inputEmail" placeholder="Email">
+
+        <div class="pass-wrapper" id="wrapperPass1">
+            <input type="password" id="inputPassword" placeholder="Contraseña">
+            <button class="ojito" type="button" onclick="togglePass('inputPassword', this)">👁️</button>
+        </div>
+
+        <div class="pass-wrapper" id="wrapperPass2" style="display:none;">
+            <input type="password" id="inputPassword2" placeholder="Repetir contraseña">
+            <button class="ojito" type="button" onclick="togglePass('inputPassword2', this)">👁️</button>
+        </div>
 
         <button class="btn btn-morado" id="btnAccion">Ingresar</button>
         <button class="link" id="btnToggle">¿No tenés cuenta? Registrate</button>
@@ -293,7 +326,7 @@ document.getElementById("btnToggle").addEventListener("click", () => {
 function actualizarModo() {
     document.getElementById("tituloEmail").textContent     = modoRegistro ? "Crear cuenta" : "Iniciar sesión";
     document.getElementById("btnAccion").textContent       = modoRegistro ? "Registrarme" : "Ingresar";
-    document.getElementById("inputPassword2").style.display = modoRegistro ? "block" : "none";
+    document.getElementById("wrapperPass2").style.display = modoRegistro ? "block" : "none";
     document.getElementById("btnToggle").textContent       = modoRegistro ? "¿Ya tenés cuenta? Iniciá sesión" : "¿No tenés cuenta? Registrate";
     document.getElementById("btnOlvide").style.display     = modoRegistro ? "none" : "block";
     document.getElementById("msgEmail").textContent        = "";
@@ -313,13 +346,7 @@ document.getElementById("btnAccion").addEventListener("click", async () => {
     if (modoRegistro) {
         if (password.length < 6)      { msgEl.textContent = "La contraseña debe tener al menos 6 caracteres."; return; }
         if (password !== password2)   { msgEl.textContent = "Las contraseñas no coinciden."; return; }
-const { error } = await sb.auth.signUp({
-    email,
-    password,
-    options: {
-        emailRedirectTo: "https://globoargento.github.io/GloboArgentoV1/login.html"
-    }
-});
+        const { error } = await sb.auth.signUp({ email, password });
         if (error) { msgEl.textContent = "Error: " + error.message; return; }
         msgOkEl.textContent = "✅ Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.";
     } else {
@@ -357,6 +384,18 @@ document.getElementById("btnSinCuenta").addEventListener("click", () => {
     localStorage.setItem("sinCuenta", "true");
     irAlJuego();
 });
+
+// ========================== MOSTRAR/OCULTAR CONTRASEÑA ==========================
+function togglePass(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+    } else {
+        input.type = "password";
+        btn.textContent = "👁️";
+    }
+}
 
 // ========================== AUTH STATE CHANGE ==========================
 sb.auth.onAuthStateChange(async (event, session) => {
