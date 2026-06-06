@@ -313,7 +313,13 @@ document.getElementById("btnAccion").addEventListener("click", async () => {
     if (modoRegistro) {
         if (password.length < 6)      { msgEl.textContent = "La contraseña debe tener al menos 6 caracteres."; return; }
         if (password !== password2)   { msgEl.textContent = "Las contraseñas no coinciden."; return; }
-        const { error } = await sb.auth.signUp({ email, password });
+const { error } = await sb.auth.signUp({
+    email,
+    password,
+    options: {
+        emailRedirectTo: "https://globoargento.github.io/GloboArgentoV1/login.html"
+    }
+});
         if (error) { msgEl.textContent = "Error: " + error.message; return; }
         msgOkEl.textContent = "✅ Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.";
     } else {
