@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Globo Argento - Ingresar</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 36px 32px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: aparecer 0.4s ease;
+        }
+        @keyframes aparecer {
+            from { transform: translateY(30px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 40px;
+            margin-bottom: 6px;
+        }
+        .titulo {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+        .subtitulo {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 22px;
+        }
+
+        /* Pantallas */
+        .pantalla { display: none; }
+        .pantalla.activa { display: block; }
+
+        /* Botón Google */
+        .btn-google {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; width: 100%; padding: 11px;
+            border: 2px solid #ddd; border-radius: 10px;
+            background: #fff; color: #333;
+            font-weight: bold; font-size: 15px;
+            cursor: pointer; margin-bottom: 10px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-google:hover { background: #f5f5f5; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .btn-google img { width: 20px; }
+
+        /* Separador */
+        .sep {
+            display: flex; align-items: center; gap: 10px;
+            color: #ccc; font-size: 13px; margin: 12px 0;
+        }
+        .sep::before, .sep::after { content:''; flex:1; height:1px; background:#e8e8e8; }
+
+        /* Inputs */
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%; padding: 11px 13px;
+            font-size: 15px; border-radius: 10px;
+            border: 1.5px solid #e0e0e0;
+            margin-bottom: 10px; outline: none;
+            transition: border 0.2s;
+        }
+        input:focus { border-color: #6c5ce7; }
+
+        /* Botones principales */
+        .btn {
+            width: 100%; padding: 12px;
+            border: none; border-radius: 10px;
+            font-weight: bold; font-size: 15px;
+            cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:active { transform: scale(0.98); }
+        .btn-morado  { background: #6c5ce7; color: #fff; }
+        .btn-azul    { background: #4A90E2; color: #fff; }
+        .btn-gris    { background: #b2bec3; color: #fff; margin-top: 6px; }
+
+        /* Links */
+        .link {
+            background: none; border: none;
+            color: #6c5ce7; font-size: 13px;
+            cursor: pointer; text-decoration: underline;
+            display: block; width: 100%;
+            text-align: center; margin-top: 10px;
+        }
+        .link:hover { color: #5a4bd1; }
+        .link-volver {
+            color: #aaa; margin-top: 8px;
+        }
+
+        /* Mensajes */
+        .msg-error { color: #e17055; font-size: 13px; margin-top: 6px; min-height: 18px; }
+        .msg-ok    { color: #00b894; font-size: 13px; margin-top: 6px; min-height: 18px; }
+        .msg-aviso { color: #aaa;    font-size: 12px; margin-top: 6px; text-align: center; }
+
+        /* Loading spinner */
+        #loadingEl {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+            color: #6c5ce7;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">🌎</div>
+    <div class="titulo">Globo Argento</div>
+    <div class="subtitulo">Iniciá sesión para jugar</div>
+
+    <div id="loadingEl">Verificando sesión... ⏳</div>
+
+    <!-- PANTALLA 1: Elegir método -->
+    <div class="pantalla activa" id="p-metodo">
+        <button class="btn-google" id="btnGoogle">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+            Continuar con Google
+        </button>
+
+        <button class="btn btn-azul" id="btnIrEmail">📧 Ingresar con Email</button>
+
+        <div class="sep">o jugá sin cuenta</div>
+
+        <input type="text" id="inputSinCuenta" placeholder="Nombre para jugar (3-20 caracteres)" maxlength="20">
+        <button class="btn btn-gris" id="btnSinCuenta">Jugar sin cuenta</button>
+        <p class="msg-aviso">⚠️ Sin cuenta los puntos no aparecen en el ranking</p>
+        <p class="msg-error" id="msgMetodo"></p>
+    </div>
+
+    <!-- PANTALLA 2: Email / Contraseña -->
+    <div class="pantalla" id="p-email">
+        <h3 id="tituloEmail" style="text-align:center; margin-bottom:14px; color:#1a1a2e;">Iniciar sesión</h3>
+
+        <input type="email"    id="inputEmail"     placeholder="Email">
+        <input type="password" id="inputPassword"  placeholder="Contraseña">
+        <input type="password" id="inputPassword2" placeholder="Repetir contraseña" style="display:none;">
+
+        <button class="btn btn-morado" id="btnAccion">Ingresar</button>
+        <button class="link" id="btnToggle">¿No tenés cuenta? Registrate</button>
+        <button class="link" id="btnOlvide" style="color:#aaa;">¿Olvidaste tu contraseña?</button>
+        <button class="link link-volver" id="btnVolverMetodo">← Volver</button>
+
+        <p class="msg-error" id="msgEmail"></p>
+        <p class="msg-ok"    id="msgEmailOk"></p>
+    </div>
+
+    <!-- PANTALLA 3: Elegir nombre de perfil (primera vez con cuenta) -->
+    <div class="pantalla" id="p-nombre">
+        <h3 style="text-align:center; margin-bottom:8px; color:#1a1a2e;">Elegí tu nombre 🎮</h3>
+        <p style="text-align:center; font-size:13px; color:#888; margin-bottom:16px;">
+            Este nombre es único y aparecerá en el ranking.
+        </p>
+        <input type="text" id="inputNombre" placeholder="Nombre (3-20 caracteres, sin espacios)" maxlength="20">
+        <button class="btn btn-morado" id="btnGuardarNombre">Confirmar nombre</button>
+        <p class="msg-error" id="msgNombre"></p>
+    </div>
+</div>
+
+<script>
+// ========================== SUPABASE ==========================
+const { createClient } = supabase;
+const sb = createClient(
+    "https://tapctytjeknttbmoqflx.supabase.co",
+    "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+    { auth: { flowType:'pkce', persistSession:true, detectSessionInUrl:true, storage:window.localStorage } }
+);
+
+// ========================== PANTALLAS ==========================
+function mostrar(id) {
+    document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
+    document.getElementById(id).classList.add("activa");
+}
+
+// ========================== HELPERS ==========================
+function validarNombre(n) {
+    return /^[A-Za-z0-9_]{3,20}$/.test(n);
+}
+
+async function obtenerPerfil(userId) {
+    const { data } = await sb.from("Perfiles").select("nombre_usuario").eq("id", userId).single();
+    return data?.nombre_usuario || null;
+}
+
+function irAlJuego() {
+    window.location.href = "index.html";
+}
+
+// ========================== POST LOGIN: verificar perfil ==========================
+async function manejarSesion(session) {
+    document.getElementById("loadingEl").style.display = "block";
+    document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
+
+    const nombre = await obtenerPerfil(session.user.id);
+    document.getElementById("loadingEl").style.display = "none";
+
+    if (nombre) {
+        // Ya tiene perfil → guardar en localStorage y mandar al juego
+        localStorage.setItem("usuario", nombre);
+        localStorage.removeItem("sinCuenta");
+        irAlJuego();
+    } else {
+        // Primera vez → pedir nombre
+        mostrar("p-nombre");
+    }
+}
+
+// ========================== GUARDAR NOMBRE DE PERFIL ==========================
+document.getElementById("btnGuardarNombre").addEventListener("click", async () => {
+    const nombre = document.getElementById("inputNombre").value.trim();
+    const msgEl  = document.getElementById("msgNombre");
+    msgEl.textContent = "";
+
+    if (!validarNombre(nombre)) {
+        msgEl.textContent = "3-20 caracteres, solo letras, números y guión bajo (_).";
+        return;
+    }
+
+    // Verificar que no esté tomado
+    const { data: existente } = await sb.from("Perfiles").select("id").eq("nombre_usuario", nombre).single();
+    if (existente) {
+        msgEl.textContent = "Ese nombre ya está en uso. Elegí otro.";
+        return;
+    }
+
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { msgEl.textContent = "Sesión expirada. Recargá la página."; return; }
+
+    const { error } = await sb.from("Perfiles").insert({ id: session.user.id, nombre_usuario: nombre });
+    if (error) {
+        msgEl.textContent = "Error al guardar. Intentá de nuevo.";
+        console.error(error);
+        return;
+    }
+
+    localStorage.setItem("usuario", nombre);
+    localStorage.removeItem("sinCuenta");
+    irAlJuego();
+});
+
+// ========================== GOOGLE ==========================
+document.getElementById("btnGoogle").addEventListener("click", async () => {
+    const msgEl = document.getElementById("msgMetodo");
+    msgEl.textContent = "";
+    const { error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.origin + window.location.pathname,
+            queryParams: { prompt: 'select_account' }
+        }
+    });
+    if (error) msgEl.textContent = "Error con Google: " + error.message;
+});
+
+// ========================== EMAIL / CONTRASEÑA ==========================
+let modoRegistro = false;
+
+document.getElementById("btnIrEmail").addEventListener("click", () => {
+    modoRegistro = false;
+    actualizarModo();
+    mostrar("p-email");
+});
+
+document.getElementById("btnVolverMetodo").addEventListener("click", () => mostrar("p-metodo"));
+
+document.getElementById("btnToggle").addEventListener("click", () => {
+    modoRegistro = !modoRegistro;
+    actualizarModo();
+});
+
+function actualizarModo() {
+    document.getElementById("tituloEmail").textContent     = modoRegistro ? "Crear cuenta" : "Iniciar sesión";
+    document.getElementById("btnAccion").textContent       = modoRegistro ? "Registrarme" : "Ingresar";
+    document.getElementById("inputPassword2").style.display = modoRegistro ? "block" : "none";
+    document.getElementById("btnToggle").textContent       = modoRegistro ? "¿Ya tenés cuenta? Iniciá sesión" : "¿No tenés cuenta? Registrate";
+    document.getElementById("btnOlvide").style.display     = modoRegistro ? "none" : "block";
+    document.getElementById("msgEmail").textContent        = "";
+    document.getElementById("msgEmailOk").textContent      = "";
+}
+
+document.getElementById("btnAccion").addEventListener("click", async () => {
+    const email     = document.getElementById("inputEmail").value.trim();
+    const password  = document.getElementById("inputPassword").value;
+    const password2 = document.getElementById("inputPassword2").value;
+    const msgEl     = document.getElementById("msgEmail");
+    const msgOkEl   = document.getElementById("msgEmailOk");
+    msgEl.textContent = ""; msgOkEl.textContent = "";
+
+    if (!email || !password) { msgEl.textContent = "Completá todos los campos."; return; }
+
+    if (modoRegistro) {
+        if (password.length < 6)      { msgEl.textContent = "La contraseña debe tener al menos 6 caracteres."; return; }
+        if (password !== password2)   { msgEl.textContent = "Las contraseñas no coinciden."; return; }
+        const { error } = await sb.auth.signUp({ email, password });
+        if (error) { msgEl.textContent = "Error: " + error.message; return; }
+        msgOkEl.textContent = "✅ Cuenta creada. Revisá tu email para confirmarla y luego iniciá sesión.";
+    } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { msgEl.textContent = "Email o contraseña incorrectos."; return; }
+        // manejarSesion se llama desde onAuthStateChange
+    }
+});
+
+// ========================== RECUPERAR CONTRASEÑA ==========================
+document.getElementById("btnOlvide").addEventListener("click", async () => {
+    const email   = document.getElementById("inputEmail").value.trim();
+    const msgEl   = document.getElementById("msgEmail");
+    const msgOkEl = document.getElementById("msgEmailOk");
+    msgEl.textContent = ""; msgOkEl.textContent = "";
+
+    if (!email) { msgEl.textContent = "Ingresá tu email arriba primero."; return; }
+
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + "/login.html"
+    });
+    if (error) { msgEl.textContent = "Error: " + error.message; return; }
+    msgOkEl.textContent = "✅ Te enviamos un email para recuperar tu contraseña.";
+});
+
+// ========================== SIN CUENTA ==========================
+document.getElementById("btnSinCuenta").addEventListener("click", () => {
+    const nombre = document.getElementById("inputSinCuenta").value.trim();
+    const msgEl  = document.getElementById("msgMetodo");
+    if (!validarNombre(nombre)) {
+        msgEl.textContent = "El nombre debe tener 3-20 caracteres sin espacios.";
+        return;
+    }
+    localStorage.setItem("usuario", nombre);
+    localStorage.setItem("sinCuenta", "true");
+    irAlJuego();
+});
+
+// ========================== AUTH STATE CHANGE ==========================
+sb.auth.onAuthStateChange(async (event, session) => {
+    // Limpiar errores/codes de la URL
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('code') || url.searchParams.has('error')) {
+        url.search = ''; url.hash = '';
+        window.history.replaceState({}, document.title, url.toString());
+    }
+
+    if (event === 'INITIAL_SESSION') return; // lo maneja inicializar()
+
+    if (event === 'SIGNED_IN' && session?.user) {
+        await manejarSesion(session);
+    }
+});
+
+// ========================== INICIALIZAR ==========================
+async function inicializar() {
+    // Si ya hay sesión activa, mandarlos directo
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (session?.user) {
+        await manejarSesion(session);
+        return;
+    }
+
+    // Sin sesión: mostrar pantalla de login
+    mostrar("p-metodo");
+}
+
+inicializar();
+</script>
+</body>
+</html>
