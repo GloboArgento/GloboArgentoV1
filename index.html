@@ -473,15 +473,22 @@
     });
 
     // ========================== AUTH STATE CHANGE ==========================
+    // Solo manejamos eventos que realmente cambian el estado.
+    // INITIAL_SESSION lo ignoramos porque inicializar() ya lo maneja
+    // de forma sincrónica con el caché de localStorage.
     sb.auth.onAuthStateChange(async (event, session) => {
         console.log("Auth event:", event);
 
-        // Limpiar ?code= de la URL si existe
+        // Limpiar ?code= o ?error= de la URL si existe
         const url = new URL(window.location.href);
-        if (url.searchParams.has('code')) {
-            url.searchParams.delete('code');
+        if (url.searchParams.has('code') || url.searchParams.has('error')) {
+            url.search = '';
+            url.hash   = '';
             window.history.replaceState({}, document.title, url.toString());
         }
+
+        // INITIAL_SESSION: ya lo maneja inicializar(), ignorar acá
+        if (event === 'INITIAL_SESSION') return;
 
         if (event === 'SIGNED_IN' && session?.user) {
             localStorage.removeItem("sinCuenta");
@@ -498,19 +505,51 @@
 
     // ========================== INICIALIZAR ==========================
     async function inicializar() {
+        // Primero chequeamos el caché local para mostrar algo INMEDIATAMENTE
+        // sin esperar la llamada de red a Supabase
+        const usuarioLocal   = localStorage.getItem("usuario");
+        const esSinCuenta    = localStorage.getItem("sinCuenta") === "true";
+
+        if (usuarioLocal && esSinCuenta) {
+            // Usuario sin cuenta: mostrar directo, sin llamada a Supabase
+            loadingOverlay.style.display = "none";
+            mostrarUsuario(usuarioLocal);
+            return;
+        }
+
+        // Verificar sesión real con Supabase
         const { data: { session } } = await sb.auth.getSession();
 
         if (session?.user) {
             localStorage.removeItem("sinCuenta");
+
+            // Si ya tenemos el nombre en localStorage, mostrarlo inmediatamente
+            // y verificar el perfil en segundo plano
+            if (usuarioLocal) {
+                loadingOverlay.style.display = "none";
+                mostrarUsuario(usuarioLocal);
+
+                // Verificar en segundo plano que el perfil siga existiendo
+                obtenerNombrePerfil(session.user.id).then(nombre => {
+                    if (!nombre) {
+                        // El perfil fue borrado, pedir nombre de nuevo
+                        mostrarOverlay("overlayNombre");
+                    }
+                });
+                return;
+            }
+
+            // Sin nombre en localStorage: consultar Supabase
             await manejarSesion(session);
             return;
         }
 
-        // Sin sesión Supabase: revisar si hay usuario local (sin cuenta)
-        const usuarioLocal = localStorage.getItem("usuario");
+        // Sin sesión Supabase
         loadingOverlay.style.display = "none";
-        if (usuarioLocal) {
-            mostrarUsuario(usuarioLocal);
+        if (usuarioLocal && !esSinCuenta) {
+            // Nombre local pero la sesión expiró — pedir login de nuevo
+            localStorage.removeItem("usuario");
+            mostrarOverlay("overlayMetodo");
         } else {
             mostrarOverlay("overlayMetodo");
         }
