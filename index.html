@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Globo Argento - Menú</title>
     <link rel="stylesheet" href="style.css">
-
-    <!-- Supabase PRIMERO, antes de cualquier script que lo use -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <style>
-        /* ===== Glow del título ===== */
         @keyframes glow {
-            0% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
-            50% { text-shadow: 0 0 20px #4A90E2, 0 0 30px #50E3C2; }
+            0%   { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            50%  { text-shadow: 0 0 20px #4A90E2, 0 0 30px #50E3C2; }
             100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
         }
         h1 {
@@ -25,32 +22,23 @@
             animation: glow 2s infinite;
         }
 
-        /* ===== Botón Tienda ===== */
         #botonTienda {
-            position: fixed;
-            top: 10px; left: 10px;
-            background: #FFD700;
-            color: #000;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
+            position: fixed; top: 10px; left: 10px;
+            background: #FFD700; color: #000;
+            padding: 10px 15px; border-radius: 8px;
+            font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-            z-index: 1000;
+            transition: transform 0.2s; z-index: 1000;
         }
         #botonTienda:hover { transform: scale(1.1); }
 
-        /* ===== Botón cerrar sesión ===== */
         #cerrarSesion {
             position: fixed; top: 10px; right: 10px;
             background: #ff4757; color: #fff;
             padding: 10px 15px; border-radius: 8px;
             font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            display: none;
-            z-index: 1000;
-            border: none;
+            display: none; z-index: 1000; border: none;
             transition: transform 0.2s;
         }
         #cerrarSesion:hover { transform: scale(1.05); }
@@ -58,10 +46,9 @@
         /* ===== Modal Tienda ===== */
         #overlayTienda {
             position: fixed; top:0; left:0;
-            width: 100%; height: 100%;
+            width:100%; height:100%;
             background: rgba(0,0,0,0.6);
-            display: none;
-            align-items: center; justify-content: center;
+            display: none; align-items: center; justify-content: center;
             z-index: 2000;
         }
         #modalTienda {
@@ -71,134 +58,129 @@
             animation: aparecer 0.4s ease;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
-        @keyframes aparecer { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes aparecer { from { transform: scale(0.8); opacity:0; } to { transform: scale(1); opacity:1; } }
         #cerrarTienda { position: absolute; top:10px; right:15px; font-size:22px; cursor:pointer; font-weight:bold; z-index:10; }
-        #modalTienda iframe { width: 100%; height: 100%; border: none; }
+        #modalTienda iframe { width:100%; height:100%; border:none; }
 
-        /* ===== Modal Usuario (nombre local) ===== */
-        #overlayUsuario {
+        /* ===== Overlay general ===== */
+        .overlay {
             position: fixed; top:0; left:0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            align-items: center; justify-content: center;
+            width:100%; height:100%;
+            background: rgba(0,0,0,0.75);
+            display: none; align-items: center; justify-content: center;
             z-index: 3000;
         }
-        #modalUsuario {
+        .modal-box {
             background: #fff; padding: 30px;
             border-radius: 15px; text-align: center;
             width: 90%; max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: aparecer 0.3s ease;
         }
-        #modalUsuario h2 { margin-bottom: 5px; }
-        #modalUsuario input {
-            width: 80%; padding: 10px;
-            margin: 15px 0; font-size: 16px;
-            border-radius: 8px; border: 1px solid #ccc;
-            display: block; margin: 10px auto;
+        .modal-box h2 { margin-bottom: 4px; font-size: 22px; }
+        .modal-box .subtitulo { color: #888; font-size: 13px; margin-bottom: 16px; }
+
+        /* Inputs */
+        .modal-input {
+            width: 100%; padding: 10px 12px;
+            font-size: 15px; border-radius: 8px;
+            border: 1.5px solid #ddd; box-sizing: border-box;
+            margin-bottom: 10px; outline: none;
+            transition: border 0.2s;
         }
-        #modalUsuario .btn-guardar {
-            padding: 10px 20px;
+        .modal-input:focus { border-color: #6c5ce7; }
+
+        /* Botones principales */
+        .btn-primary {
+            width: 100%; padding: 11px;
             border: none; border-radius: 8px;
             background: #6c5ce7; color: #fff;
-            font-weight: bold; cursor: pointer;
-            font-size: 16px; width: 100%;
-            margin-top: 8px;
+            font-weight: bold; font-size: 15px;
+            cursor: pointer; margin-top: 4px;
+            transition: background 0.2s;
         }
-        #modalUsuario .btn-guardar:hover { background: #5a4bd1; }
+        .btn-primary:hover { background: #5a4bd1; }
 
-        /* ===== Botón Google dentro del modal ===== */
-        #btnGoogle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 10px 20px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: #fff;
-            color: #444;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 12px;
+        .btn-google {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; width: 100%; padding: 10px;
+            border: 2px solid #ddd; border-radius: 8px;
+            background: #fff; color: #444;
+            font-weight: bold; font-size: 15px;
+            cursor: pointer; margin-bottom: 10px;
             transition: background 0.2s, box-shadow 0.2s;
         }
-        #btnGoogle:hover { background: #f5f5f5; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        #btnGoogle img { width: 20px; height: 20px; }
+        .btn-google:hover { background: #f5f5f5; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+        .btn-google img { width: 20px; height: 20px; }
+
+        .btn-link {
+            background: none; border: none;
+            color: #6c5ce7; font-size: 13px;
+            cursor: pointer; text-decoration: underline;
+            margin-top: 8px; display: block; width: 100%;
+        }
+        .btn-link:hover { color: #5a4bd1; }
 
         .separador {
             display: flex; align-items: center; gap: 10px;
-            color: #aaa; font-size: 13px; margin: 12px 0;
+            color: #bbb; font-size: 13px; margin: 10px 0;
         }
         .separador::before, .separador::after {
-            content: ''; flex: 1; height: 1px; background: #ddd;
+            content:''; flex:1; height:1px; background:#e0e0e0;
         }
 
-        #mensajeUsuario { color: #d63031; margin-top: 8px; min-height: 20px; font-size: 13px; }
+        .msg-error { color: #d63031; font-size: 13px; margin-top: 6px; min-height: 18px; }
+        .msg-ok    { color: #00b894; font-size: 13px; margin-top: 6px; min-height: 18px; }
+        .msg-aviso { color: #aaa; font-size: 12px; margin-top: 4px; }
 
-        /* País del día */
+        /* ===== País del día ===== */
         #paisDelDia {
-            width: 280px; margin: 30px auto 0 auto;
+            width: 280px; margin: 30px auto 0;
             padding: 15px;
             background: linear-gradient(135deg, #4A90E2, #50E3C2);
-            border-radius: 15px;
-            text-align: center;
-            color: #fff;
+            border-radius: 15px; text-align: center; color: #fff;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3);
             font-family: Arial, sans-serif;
             transition: opacity 0.5s ease, transform 0.5s ease;
         }
-        #paisDelDia img { width: 140px; border-radius: 8px; border: 2px solid #fff; }
+        #paisDelDia img { width:140px; border-radius:8px; border:2px solid #fff; }
 
-        /* ===== Nombre de usuario animado ===== */
+        /* ===== Nombre usuario animado ===== */
         #nombreUsuarioDisplay {
-            position: fixed;
-            bottom: 15px; right: 15px;
+            position: fixed; bottom:15px; right:15px;
             background: linear-gradient(135deg, #6c5ce7, #00b894);
-            color: #fff; font-weight: bold;
-            padding: 10px 20px; border-radius: 20px;
+            color:#fff; font-weight:bold;
+            padding:10px 20px; border-radius:20px;
             font-family: Arial, sans-serif;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             animation: deslizarBrillo 2s ease-in-out infinite alternate;
-            z-index: 1000;
-            display: none;
+            z-index: 1000; display:none;
         }
         @keyframes deslizarBrillo {
-            0% { transform: translateY(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-            50% { transform: translateY(0px); box-shadow: 0 6px 16px rgba(0,0,0,0.5); }
-            100% { transform: translateY(10px); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+            0%   { transform: translateY(10px); }
+            50%  { transform: translateY(0px); }
+            100% { transform: translateY(10px); }
         }
 
-        /* ===== Loading inicial ===== */
+        /* ===== Loading ===== */
         #loadingOverlay {
-            position: fixed; inset: 0;
+            position: fixed; inset:0;
             background: rgba(0,0,0,0.5);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 9999;
-            color: #fff; font-size: 20px; font-family: Arial, sans-serif;
+            display: flex; align-items:center; justify-content:center;
+            z-index: 9999; color:#fff; font-size:20px; font-family:Arial,sans-serif;
         }
     </style>
 </head>
-
 <body>
 
-    <!-- Loading mientras se verifica sesión -->
     <div id="loadingOverlay">Cargando... ⏳</div>
 
-    <!-- Botones -->
     <div id="botonTienda">Tienda 🛒</div>
     <button id="cerrarSesion">Cerrar sesión</button>
-
-    <!-- Nombre de usuario -->
     <div id="nombreUsuarioDisplay"></div>
 
     <h1>Globo Argento 🌎</h1>
-
-    <div id="frases-container">
-        <span id="frase-dia"></span>
-    </div>
+    <div id="frases-container"><span id="frase-dia"></span></div>
 
     <div class="menu">
         <a href="juego.html" class="boton-menu">Jugar</a>
@@ -224,277 +206,393 @@
         </div>
     </div>
 
-    <!-- Modal Usuario -->
-    <div id="overlayUsuario">
-        <div id="modalUsuario">
+    <!-- ===== MODAL PRINCIPAL: elegir método ===== -->
+    <div class="overlay" id="overlayMetodo">
+        <div class="modal-box">
             <h2>¡Bienvenido a Globo Argento! 🌎</h2>
-            <p style="color:#666; font-size:14px;">Iniciá sesión o elegí un nombre de usuario</p>
+            <p class="subtitulo">Iniciá sesión para subir al ranking</p>
 
-            <!-- Opción Google -->
-            <button id="btnGoogle">
+            <button class="btn-google" id="btnGoogle">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                Iniciar sesión con Google
+                Continuar con Google
+            </button>
+
+            <button class="btn-primary" id="btnIrEmail" style="background:#4A90E2;">
+                📧 Iniciar sesión con Email
             </button>
 
             <div class="separador">o</div>
 
-            <!-- Opción sin cuenta -->
-            <input type="text" id="inputUsuario" placeholder="Nombre (3-20 letras)" maxlength="20">
-            <button class="btn-guardar" id="btnGuardarUsuario">Jugar sin cuenta</button>
-            <p style="color:#aaa; font-size:12px; margin-top:6px;">⚠️ Sin cuenta los puntos no aparecen en el ranking</p>
-            <p id="mensajeUsuario"></p>
+            <input class="modal-input" type="text" id="inputSinCuenta" placeholder="Nombre para jugar (3-20 caracteres)" maxlength="20">
+            <button class="btn-primary" id="btnSinCuenta" style="background:#636e72;">Jugar sin cuenta</button>
+            <p class="msg-aviso">⚠️ Sin cuenta los puntos no aparecen en el ranking</p>
+            <p class="msg-error" id="msgMetodo"></p>
+        </div>
+    </div>
+
+    <!-- ===== MODAL EMAIL: login o registro ===== -->
+    <div class="overlay" id="overlayEmail">
+        <div class="modal-box">
+            <h2 id="tituloEmail">Iniciar sesión</h2>
+            <p class="subtitulo" id="subtituloEmail">Ingresá tu email y contraseña</p>
+
+            <input class="modal-input" type="email"    id="inputEmail"      placeholder="Email">
+            <input class="modal-input" type="password" id="inputPassword"   placeholder="Contraseña">
+            <input class="modal-input" type="password" id="inputPassword2"  placeholder="Repetir contraseña" style="display:none;">
+
+            <button class="btn-primary" id="btnAccion">Ingresar</button>
+
+            <button class="btn-link" id="btnToggleRegistro">¿No tenés cuenta? Registrate</button>
+            <button class="btn-link" id="btnOlvidePassword">¿Olvidaste tu contraseña?</button>
+            <button class="btn-link" id="btnVolverMetodo">← Volver</button>
+
+            <p class="msg-error" id="msgEmail"></p>
+            <p class="msg-ok"    id="msgEmailOk"></p>
+        </div>
+    </div>
+
+    <!-- ===== MODAL NOMBRE DE USUARIO (primera vez) ===== -->
+    <div class="overlay" id="overlayNombre">
+        <div class="modal-box">
+            <h2>Elegí tu nombre en el juego 🎮</h2>
+            <p class="subtitulo">Este nombre aparecerá en el ranking. Solo puede usarlo una persona.</p>
+            <input class="modal-input" type="text" id="inputNombreJuego" placeholder="Nombre único (3-20 caracteres)" maxlength="20">
+            <button class="btn-primary" id="btnGuardarNombre">Confirmar nombre</button>
+            <p class="msg-error" id="msgNombre"></p>
         </div>
     </div>
 
     <script>
-        // ========================== SUPABASE ==========================
-        // flowType: 'pkce' es OBLIGATORIO para sitios estáticos (GitHub Pages).
-        // El flujo implicit devuelve el token en el hash (#), que GitHub Pages
-        // no procesa. PKCE usa un "code" en la query (?code=...) que el SDK
-        // intercambia automáticamente por una sesión al cargar la página.
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            "https://tapctytjeknttbmoqflx.supabase.co",
-            "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
-            {
-                auth: {
-                    flowType: 'pkce',
-                    // Guarda la sesión en localStorage para que persista entre recargas
-                    persistSession: true,
-                    // Detecta automáticamente el token en la URL al cargar
-                    detectSessionInUrl: true,
-                    // Necesario para que el PKCE code challenge se guarde correctamente
-                    storage: window.localStorage
-                }
-            }
-        );
+    // ========================== SUPABASE ==========================
+    const { createClient } = supabase;
+    const sb = createClient(
+        "https://tapctytjeknttbmoqflx.supabase.co",
+        "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+        { auth: { flowType:'pkce', persistSession:true, detectSessionInUrl:true, storage:window.localStorage } }
+    );
 
-        // ========================== REFERENCIAS DOM ==========================
-        const overlayUsuario   = document.getElementById("overlayUsuario");
-        const inputUsuario     = document.getElementById("inputUsuario");
-        const btnGuardarUsuario= document.getElementById("btnGuardarUsuario");
-        const mensajeUsuario   = document.getElementById("mensajeUsuario");
-        const cerrarSesion     = document.getElementById("cerrarSesion");
-        const nombreUsuarioDisplay = document.getElementById("nombreUsuarioDisplay");
-        const btnGoogle        = document.getElementById("btnGoogle");
-        const loadingOverlay   = document.getElementById("loadingOverlay");
+    // ========================== DOM ==========================
+    const loadingOverlay     = document.getElementById("loadingOverlay");
+    const cerrarSesionBtn    = document.getElementById("cerrarSesion");
+    const nombreDisplay      = document.getElementById("nombreUsuarioDisplay");
 
-        // ========================== AUTH CON GOOGLE ==========================
-        async function loginConGoogle() {
-            // IMPORTANTE: el redirectTo debe ser la URL exacta registrada en Supabase.
-            // Con PKCE, Supabase agrega ?code=... a esta URL al volver.
-            // Usamos origin + pathname para evitar que query params previos rompan el flujo.
-            const redirectTo = window.location.origin + window.location.pathname;
+    const overlayMetodo      = document.getElementById("overlayMetodo");
+    const overlayEmail       = document.getElementById("overlayEmail");
+    const overlayNombre      = document.getElementById("overlayNombre");
 
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo,
-                    // Fuerza que el usuario elija cuenta Google (no auto-login silencioso)
-                    queryParams: { prompt: 'select_account' }
-                }
-            });
-            if (error) {
-                mensajeUsuario.textContent = "Error al iniciar sesión con Google: " + error.message;
-                console.error("Google OAuth error:", error);
-            }
-        }
+    // ========================== HELPERS ==========================
+    function mostrarOverlay(id) {
+        ["overlayMetodo","overlayEmail","overlayNombre"].forEach(o => {
+            document.getElementById(o).style.display = "none";
+        });
+        if (id) document.getElementById(id).style.display = "flex";
+    }
 
-        btnGoogle.addEventListener("click", loginConGoogle);
+    function mostrarUsuario(nombre) {
+        nombreDisplay.textContent = "👤 " + nombre;
+        nombreDisplay.style.display = "block";
+        cerrarSesionBtn.style.display = "block";
+        loadingOverlay.style.display = "none";
+        mostrarOverlay(null);
+    }
 
-        // ========================== MANEJO DE SESIÓN ==========================
-        function mostrarNombreUsuario(nombre) {
-            nombreUsuarioDisplay.textContent = "👤 " + nombre;
-            nombreUsuarioDisplay.style.display = "block";
-        }
+    function validarNombreJuego(n) {
+        return /^[A-Za-z0-9_]{3,20}$/.test(n);
+    }
 
-        function mostrarInterfazLogueado(nombre) {
-            overlayUsuario.style.display = "none";
-            cerrarSesion.style.display = "block";
-            mostrarNombreUsuario(nombre);
-        }
+    // ========================== OBTENER NOMBRE DEL PERFIL ==========================
+    async function obtenerNombrePerfil(userId) {
+        const { data, error } = await sb
+            .from("Perfiles")
+            .select("nombre_usuario")
+            .eq("id", userId)
+            .single();
+        if (error || !data) return null;
+        return data.nombre_usuario;
+    }
 
-        async function cerrarSesionCompleta() {
-            // Si hay sesión de Supabase, cerrarla
-            await supabaseClient.auth.signOut();
-            // También limpiar localStorage
-            localStorage.removeItem("usuario");
-            location.reload();
-        }
-
-        cerrarSesion.addEventListener("click", cerrarSesionCompleta);
-
-        // ========================== INICIO: verificar sesión ==========================
-        async function inicializar() {
-            // Con flowType: 'pkce' y detectSessionInUrl: true, el SDK detecta
-            // automáticamente el ?code=... en la URL y lo intercambia por una sesión
-            // ANTES de que llamemos a getSession(). Solo tenemos que esperarlo.
-
-            // onAuthStateChange dispara PRIMERO cuando hay un code en la URL (PKCE exchange).
-            // Lo usamos como punto de entrada principal para el caso post-redirect.
-            supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                console.log("Auth event:", event, session?.user?.email);
-
-                if (event === 'SIGNED_IN' && session?.user) {
-                    // Llegamos acá tanto en el redirect de Google como en sesiones persistidas
-                    const nombre = session.user.user_metadata?.full_name
-                                || session.user.user_metadata?.name
-                                || session.user.email?.split("@")[0]
-                                || "Usuario";
-                    localStorage.setItem("usuario", nombre);
-                    loadingOverlay.style.display = "none";
-                    mostrarInterfazLogueado(nombre);
-
-                    // Limpiar el ?code= de la URL sin recargar la página
-                    const url = new URL(window.location.href);
-                    if (url.searchParams.has('code')) {
-                        url.searchParams.delete('code');
-                        window.history.replaceState({}, document.title, url.toString());
-                    }
-                    return;
-                }
-
-                if (event === 'SIGNED_OUT') {
-                    localStorage.removeItem("usuario");
-                    loadingOverlay.style.display = "none";
-                    overlayUsuario.style.display = "flex";
-                    cerrarSesion.style.display = "none";
-                    nombreUsuarioDisplay.style.display = "none";
-                }
-            });
-
-            // Fallback: si no hay evento (sesión ya persistida o usuario local),
-            // getSession() lo resuelve directamente.
-            const { data: { session } } = await supabaseClient.auth.getSession();
-
-            if (session?.user) {
-                // Sesión activa ya procesada (el onAuthStateChange ya lo maneja,
-                // pero por si acá llegamos antes, lo cubrimos igual)
-                loadingOverlay.style.display = "none";
-                const nombre = session.user.user_metadata?.full_name
-                            || session.user.user_metadata?.name
-                            || session.user.email?.split("@")[0]
-                            || "Usuario";
-                localStorage.setItem("usuario", nombre);
-                mostrarInterfazLogueado(nombre);
-            } else {
-                // Sin sesión Supabase: revisar localStorage (usuario sin cuenta)
-                const usuarioLocal = localStorage.getItem("usuario");
-                loadingOverlay.style.display = "none";
-                if (usuarioLocal) {
-                    mostrarInterfazLogueado(usuarioLocal);
-                } else {
-                    overlayUsuario.style.display = "flex";
-                }
-            }
-        }
-
-        // ========================== NOMBRE LOCAL ==========================
-        function validarNombre(nombre) {
-            return /^[A-Za-z0-9]{3,20}$/.test(nombre);
-        }
-
-        function guardarUsuarioLocal() {
-            const nombre = inputUsuario.value.trim();
-            if (!validarNombre(nombre)) {
-                mensajeUsuario.textContent = "El nombre debe tener 3-20 letras/números sin espacios.";
-                return;
-            }
+    // ========================== FLUJO POST-LOGIN ==========================
+    // Cuando hay sesión activa, verificar si ya tiene perfil o hay que crearlo
+    async function manejarSesion(session) {
+        loadingOverlay.style.display = "flex";
+        const nombre = await obtenerNombrePerfil(session.user.id);
+        if (nombre) {
+            // Ya tiene perfil → entrar directo
             localStorage.setItem("usuario", nombre);
-            mostrarInterfazLogueado(nombre);
+            mostrarUsuario(nombre);
+        } else {
+            // Primera vez → pedir nombre de usuario
+            loadingOverlay.style.display = "none";
+            mostrarOverlay("overlayNombre");
+        }
+    }
+
+    // ========================== GUARDAR NOMBRE DE PERFIL ==========================
+    document.getElementById("btnGuardarNombre").addEventListener("click", async () => {
+        const nombre = document.getElementById("inputNombreJuego").value.trim();
+        const msgEl  = document.getElementById("msgNombre");
+        msgEl.textContent = "";
+
+        if (!validarNombreJuego(nombre)) {
+            msgEl.textContent = "3-20 caracteres, solo letras, números y guión bajo.";
+            return;
         }
 
-        btnGuardarUsuario.addEventListener("click", guardarUsuarioLocal);
-        inputUsuario.addEventListener("keyup", e => { if (e.key === "Enter") guardarUsuarioLocal(); });
+        // Verificar que el nombre no esté tomado
+        const { data: existente } = await sb
+            .from("Perfiles")
+            .select("id")
+            .eq("nombre_usuario", nombre)
+            .single();
 
-        // ========================== TIENDA ==========================
-        const botonTienda   = document.getElementById("botonTienda");
-        const overlayTienda = document.getElementById("overlayTienda");
-        const cerrarTienda  = document.getElementById("cerrarTienda");
+        if (existente) {
+            msgEl.textContent = "Ese nombre ya está en uso. Elegí otro.";
+            return;
+        }
 
-        botonTienda.addEventListener("click", () => overlayTienda.style.display = "flex");
-        cerrarTienda.addEventListener("click", () => overlayTienda.style.display = "none");
-        overlayTienda.addEventListener("click", e => {
-            if (e.target === overlayTienda) overlayTienda.style.display = "none";
+        // Guardar perfil
+        const { data: { session } } = await sb.auth.getSession();
+        const { error } = await sb
+            .from("Perfiles")
+            .insert({ id: session.user.id, nombre_usuario: nombre });
+
+        if (error) {
+            msgEl.textContent = "Error al guardar el nombre. Intentá de nuevo.";
+            console.error(error);
+            return;
+        }
+
+        localStorage.setItem("usuario", nombre);
+        mostrarUsuario(nombre);
+    });
+
+    // ========================== GOOGLE ==========================
+    document.getElementById("btnGoogle").addEventListener("click", async () => {
+        const { error } = await sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname,
+                queryParams: { prompt: 'select_account' }
+            }
+        });
+        if (error) document.getElementById("msgMetodo").textContent = "Error con Google: " + error.message;
+    });
+
+    // ========================== EMAIL/PASSWORD ==========================
+    let modoRegistro = false;
+
+    document.getElementById("btnIrEmail").addEventListener("click", () => {
+        modoRegistro = false;
+        actualizarModoEmail();
+        mostrarOverlay("overlayEmail");
+    });
+
+    document.getElementById("btnVolverMetodo").addEventListener("click", () => {
+        mostrarOverlay("overlayMetodo");
+    });
+
+    function actualizarModoEmail() {
+        document.getElementById("tituloEmail").textContent    = modoRegistro ? "Crear cuenta" : "Iniciar sesión";
+        document.getElementById("subtituloEmail").textContent = modoRegistro ? "Ingresá tu email y una contraseña" : "Ingresá tu email y contraseña";
+        document.getElementById("btnAccion").textContent      = modoRegistro ? "Registrarme" : "Ingresar";
+        document.getElementById("inputPassword2").style.display = modoRegistro ? "block" : "none";
+        document.getElementById("btnToggleRegistro").textContent = modoRegistro ? "¿Ya tenés cuenta? Iniciá sesión" : "¿No tenés cuenta? Registrate";
+        document.getElementById("btnOlvidePassword").style.display = modoRegistro ? "none" : "block";
+        document.getElementById("msgEmail").textContent   = "";
+        document.getElementById("msgEmailOk").textContent = "";
+    }
+
+    document.getElementById("btnToggleRegistro").addEventListener("click", () => {
+        modoRegistro = !modoRegistro;
+        actualizarModoEmail();
+    });
+
+    document.getElementById("btnAccion").addEventListener("click", async () => {
+        const email    = document.getElementById("inputEmail").value.trim();
+        const password = document.getElementById("inputPassword").value;
+        const password2= document.getElementById("inputPassword2").value;
+        const msgEl    = document.getElementById("msgEmail");
+        const msgOkEl  = document.getElementById("msgEmailOk");
+        msgEl.textContent = "";
+        msgOkEl.textContent = "";
+
+        if (!email || !password) { msgEl.textContent = "Completá todos los campos."; return; }
+
+        if (modoRegistro) {
+            if (password.length < 6) { msgEl.textContent = "La contraseña debe tener al menos 6 caracteres."; return; }
+            if (password !== password2) { msgEl.textContent = "Las contraseñas no coinciden."; return; }
+
+            const { error } = await sb.auth.signUp({ email, password });
+            if (error) { msgEl.textContent = "Error: " + error.message; return; }
+            msgOkEl.textContent = "✅ Cuenta creada. Revisá tu email para confirmarla, luego iniciá sesión.";
+        } else {
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) { msgEl.textContent = "Email o contraseña incorrectos."; return; }
+            // La sesión se maneja en onAuthStateChange
+        }
+    });
+
+    // ========================== RECUPERAR CONTRASEÑA ==========================
+    document.getElementById("btnOlvidePassword").addEventListener("click", async () => {
+        const email  = document.getElementById("inputEmail").value.trim();
+        const msgEl  = document.getElementById("msgEmail");
+        const msgOkEl= document.getElementById("msgEmailOk");
+        msgEl.textContent = "";
+        msgOkEl.textContent = "";
+
+        if (!email) { msgEl.textContent = "Primero ingresá tu email arriba."; return; }
+
+        const { error } = await sb.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + window.location.pathname
         });
 
-        // ========================== RACHA EMOJI ==========================
-        const rachaEmoji = document.getElementById("rachaEmoji");
-        const rachaGuardada = localStorage.getItem("rachaEmoji") || "0";
-        rachaEmoji.textContent = rachaGuardada;
+        if (error) { msgEl.textContent = "Error: " + error.message; return; }
+        msgOkEl.textContent = "✅ Te enviamos un email para recuperar tu contraseña.";
+    });
 
-        // ========================== FRASES ==========================
-        const frases = [
-            "Cada día es una nueva oportunidad.",
-            "Nunca dejes de aprender.",
-            "La práctica hace al maestro.",
-            "Sé el cambio que quieres ver.",
-            "La paciencia es la clave del éxito.",
-            "Cree en ti mismo.",
-            "Nunca es tarde para empezar.",
-            "La constancia vence al talento.",
-            "Aprovecha cada momento.",
-            "El esfuerzo trae recompensas.",
-            "La felicidad está en las pequeñas cosas.",
-            "Sigue tus sueños sin miedo.",
-            "Cada error es una lección.",
-            "Rodéate de buena energía.",
-            "La creatividad es infinita.",
-            "Aprende algo nuevo cada día.",
-            "Disfruta del proceso.",
-            "Confía en tu intuición.",
-            "El éxito es cuestión de actitud.",
-            "Tu actitud determina tu éxito."
-        ];
-        const fraseDiaSpan = document.getElementById('frase-dia');
-        function mostrarFrase() {
-            const frase = frases[Math.floor(Math.random() * frases.length)];
-            fraseDiaSpan.textContent = "";
-            fraseDiaSpan.style.borderRight = '2px solid #4A90E2';
-            let i = 0;
-            function escribir() {
-                if (i < frase.length) {
-                    fraseDiaSpan.textContent += frase.charAt(i);
-                    i++;
-                    setTimeout(escribir, 50);
-                } else {
-                    fraseDiaSpan.style.borderRight = 'none';
-                }
-            }
-            escribir();
+    // ========================== SIN CUENTA ==========================
+    document.getElementById("btnSinCuenta").addEventListener("click", () => {
+        const nombre = document.getElementById("inputSinCuenta").value.trim();
+        const msgEl  = document.getElementById("msgMetodo");
+        if (!validarNombreJuego(nombre)) {
+            msgEl.textContent = "El nombre debe tener 3-20 caracteres, sin espacios.";
+            return;
         }
-        mostrarFrase();
+        localStorage.setItem("usuario", nombre);
+        // Marcar explícitamente que es sin cuenta para que los JS no suban al ranking
+        localStorage.setItem("sinCuenta", "true");
+        mostrarUsuario(nombre);
+    });
 
-        // ========================== PAÍS DEL DÍA ==========================
-        const paises = [
-            { nombre: "Japón",   imagen: "https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg",   dato: "Japón combina tradición milenaria con tecnología de punta." },
-            { nombre: "Brasil",  imagen: "https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg",  dato: "En Brasil se encuentra la mayor selva tropical del mundo: el Amazonas." },
-            { nombre: "Canadá",  imagen: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg", dato: "Canadá tiene más de 31.000 lagos de tamaño considerable." },
-        ];
-        const paisDelDiaDiv = document.getElementById("paisDelDia");
-        const banderaDia    = document.getElementById("banderaDia");
-        const nombrePais    = document.getElementById("nombrePais");
-        const datoPais      = document.getElementById("datoPais");
+    // ========================== CERRAR SESIÓN ==========================
+    cerrarSesionBtn.addEventListener("click", async () => {
+        await sb.auth.signOut();
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("sinCuenta");
+        location.reload();
+    });
 
-        function mostrarPaisAleatorio() {
-            paisDelDiaDiv.style.opacity = 0;
-            paisDelDiaDiv.style.transform = "translateY(20px)";
-            setTimeout(() => {
-                const pais = paises[Math.floor(Math.random() * paises.length)];
-                banderaDia.src = pais.imagen;
-                banderaDia.alt = "Bandera de " + pais.nombre;
-                nombrePais.textContent = pais.nombre;
-                datoPais.textContent   = pais.dato;
-                paisDelDiaDiv.style.opacity   = 1;
-                paisDelDiaDiv.style.transform = "translateY(0)";
-            }, 500);
+    // ========================== AUTH STATE CHANGE ==========================
+    sb.auth.onAuthStateChange(async (event, session) => {
+        console.log("Auth event:", event);
+
+        // Limpiar ?code= de la URL si existe
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('code')) {
+            url.searchParams.delete('code');
+            window.history.replaceState({}, document.title, url.toString());
         }
-        mostrarPaisAleatorio();
-        setInterval(mostrarPaisAleatorio, 30000);
 
-        // ========================== ARRANCAR ==========================
-        inicializar();
+        if (event === 'SIGNED_IN' && session?.user) {
+            localStorage.removeItem("sinCuenta");
+            await manejarSesion(session);
+        }
+
+        if (event === 'SIGNED_OUT') {
+            loadingOverlay.style.display = "none";
+            mostrarOverlay("overlayMetodo");
+            cerrarSesionBtn.style.display = "none";
+            nombreDisplay.style.display = "none";
+        }
+    });
+
+    // ========================== INICIALIZAR ==========================
+    async function inicializar() {
+        const { data: { session } } = await sb.auth.getSession();
+
+        if (session?.user) {
+            localStorage.removeItem("sinCuenta");
+            await manejarSesion(session);
+            return;
+        }
+
+        // Sin sesión Supabase: revisar si hay usuario local (sin cuenta)
+        const usuarioLocal = localStorage.getItem("usuario");
+        loadingOverlay.style.display = "none";
+        if (usuarioLocal) {
+            mostrarUsuario(usuarioLocal);
+        } else {
+            mostrarOverlay("overlayMetodo");
+        }
+    }
+
+    // ========================== TIENDA ==========================
+    document.getElementById("botonTienda").addEventListener("click", () =>
+        document.getElementById("overlayTienda").style.display = "flex");
+    document.getElementById("cerrarTienda").addEventListener("click", () =>
+        document.getElementById("overlayTienda").style.display = "none");
+    document.getElementById("overlayTienda").addEventListener("click", e => {
+        if (e.target === document.getElementById("overlayTienda"))
+            document.getElementById("overlayTienda").style.display = "none";
+    });
+
+    // ========================== RACHA EMOJI ==========================
+    document.getElementById("rachaEmoji").textContent = localStorage.getItem("rachaEmoji") || "0";
+
+    // ========================== FRASES ==========================
+    const frases = [
+        "Cada día es una nueva oportunidad.",
+        "Nunca dejes de aprender.",
+        "La práctica hace al maestro.",
+        "Sé el cambio que quieres ver.",
+        "La paciencia es la clave del éxito.",
+        "Cree en ti mismo.",
+        "Nunca es tarde para empezar.",
+        "La constancia vence al talento.",
+        "Aprovecha cada momento.",
+        "El esfuerzo trae recompensas.",
+        "La felicidad está en las pequeñas cosas.",
+        "Sigue tus sueños sin miedo.",
+        "Cada error es una lección.",
+        "Rodéate de buena energía.",
+        "La creatividad es infinita.",
+        "Aprende algo nuevo cada día.",
+        "Disfruta del proceso.",
+        "Confía en tu intuición.",
+        "El éxito es cuestión de actitud.",
+        "Tu actitud determina tu éxito."
+    ];
+    const fraseDiaSpan = document.getElementById('frase-dia');
+    function mostrarFrase() {
+        const frase = frases[Math.floor(Math.random() * frases.length)];
+        fraseDiaSpan.textContent = "";
+        fraseDiaSpan.style.borderRight = '2px solid #4A90E2';
+        let i = 0;
+        function escribir() {
+            if (i < frase.length) {
+                fraseDiaSpan.textContent += frase.charAt(i++);
+                setTimeout(escribir, 50);
+            } else { fraseDiaSpan.style.borderRight = 'none'; }
+        }
+        escribir();
+    }
+    mostrarFrase();
+
+    // ========================== PAÍS DEL DÍA ==========================
+    const paisesDelDia = [
+        { nombre:"Japón",  imagen:"https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg",  dato:"Japón combina tradición milenaria con tecnología de punta." },
+        { nombre:"Brasil", imagen:"https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg", dato:"En Brasil se encuentra la mayor selva tropical del mundo: el Amazonas." },
+        { nombre:"Canadá", imagen:"https://upload.wikimedia.org/wikipedia/commons/c/cf/Flag_of_Canada.svg", dato:"Canadá tiene más de 31.000 lagos de tamaño considerable." },
+    ];
+    const paisDelDiaDiv = document.getElementById("paisDelDia");
+    function mostrarPaisAleatorio() {
+        paisDelDiaDiv.style.opacity = 0;
+        paisDelDiaDiv.style.transform = "translateY(20px)";
+        setTimeout(() => {
+            const p = paisesDelDia[Math.floor(Math.random() * paisesDelDia.length)];
+            document.getElementById("banderaDia").src = p.imagen;
+            document.getElementById("banderaDia").alt = "Bandera de " + p.nombre;
+            document.getElementById("nombrePais").textContent = p.nombre;
+            document.getElementById("datoPais").textContent   = p.dato;
+            paisDelDiaDiv.style.opacity   = 1;
+            paisDelDiaDiv.style.transform = "translateY(0)";
+        }, 500);
+    }
+    mostrarPaisAleatorio();
+    setInterval(mostrarPaisAleatorio, 30000);
+
+    // ========================== ARRANCAR ==========================
+    inicializar();
     </script>
-    <div id="marca-agua">V1.2026 - LAUUTY.RP</div>
 </body>
 </html>
