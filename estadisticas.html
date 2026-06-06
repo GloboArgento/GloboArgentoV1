@@ -3,37 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas Generales - Juego de Banderas</title>
+    <title>Estadísticas - Globo Argento</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         .estadisticas-container {
-            width: 300px;
-            margin: 50px auto;
+            width: 320px;
+            margin: 40px auto;
             background: white;
-            padding: 25px 35px;
+            padding: 28px 35px;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 8px 18px rgba(0,0,0,0.3);
         }
         .estadisticas-container h2 { margin-bottom: 20px; }
-        .estadisticas-container p { font-size: 18px; margin: 10px 0; }
+        .estadisticas-container p  { font-size: 18px; margin: 10px 0; }
+
+        /* Cartel sin sesión */
+        #cartелSinSesion {
+            display: none;
+            width: 320px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px 35px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+        }
+        #cartelSinSesion .icono { font-size: 48px; margin-bottom: 12px; }
+        #cartelSinSesion h2 { color: #2d3436; margin-bottom: 10px; }
+        #cartelSinSesion p  { color: #636e72; font-size: 15px; margin-bottom: 20px; line-height: 1.5; }
+        #cartelSinSesion a  {
+            display: inline-block;
+            padding: 12px 28px;
+            background: #6c5ce7;
+            color: #fff;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        #cartelSinSesion a:hover { background: #5a4bd1; }
+
         #botonReiniciar {
             padding: 10px 20px;
-            font-size: 18px;
-            background-color: red;
+            font-size: 16px;
+            background-color: #e17055;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             margin-top: 15px;
-            animation: pulse 1.5s infinite;
+            transition: transform 0.2s, background 0.2s;
         }
-        @keyframes pulse {
-            0%   { transform: scale(1);   }
-            50%  { transform: scale(1.1); }
-            100% { transform: scale(1);   }
-        }
+        #botonReiniciar:hover { background: #d63031; transform: scale(1.05); }
+
         #monedaDiv {
             position: fixed; top: 20px; right: 20px;
             background: rgba(255,215,0,0.9); color: #000;
@@ -48,139 +73,163 @@
             position: fixed; top: 70px; right: 20px;
             background: rgba(255,215,0,0.9); color: #000;
             padding: 8px 14px; border-radius: 20px;
-            font-weight: bold; font-size: 16px;
+            font-weight: bold; font-size: 14px;
             opacity: 0; transition: opacity 0.3s; z-index: 1001;
+        }
+        #loadingStats {
+            text-align: center; color: #fff;
+            font-size: 18px; margin-top: 60px;
+            font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
     <h1>Estadísticas Generales 🌍</h1>
 
-    <div class="estadisticas-container">
-        <h2>Totales</h2>
-        <p>Partidas jugadas: <span id="totalPartidas">0</span></p>
-        <p>Aciertos: <span id="totalAciertos">0</span></p>
-        <p>Fallos: <span id="totalFallos">0</span></p>
-        <p>Desafíos ganados: <span id="totalDesafios">0</span></p>
-        <p>Efectividad: <span id="efectividadGeneral">0%</span></p>
-        <button id="botonReiniciar">Reiniciar Estadísticas (100 🪙)</button>
+    <div id="loadingStats">Cargando estadísticas... ⏳</div>
+
+    <!-- Cartel para usuarios sin sesión -->
+    <div id="cartelSinSesion">
+        <div class="icono">🔒</div>
+        <h2>Iniciá sesión para ver tus estadísticas</h2>
+        <p>Tus partidas, aciertos y desafíos se guardan en la nube cuando jugás con una cuenta. ¡Creá una gratis y empezá a acumular tu progreso!</p>
+        <a href="login.html">Iniciar sesión</a>
     </div>
 
-    <div style="text-align:center;">
+    <!-- Estadísticas reales -->
+    <div class="estadisticas-container" id="contenedorEstadisticas" style="display:none;">
+        <h2>Totales de <span id="nombreJugador">—</span></h2>
+        <p>Partidas jugadas: <strong><span id="totalPartidas">0</span></strong></p>
+        <p>Aciertos: <strong><span id="totalAciertos">0</span></strong></p>
+        <p>Fallos: <strong><span id="totalFallos">0</span></strong></p>
+        <p>Desafíos ganados: <strong><span id="totalDesafios">0</span></strong></p>
+        <p>Efectividad: <strong><span id="efectividadGeneral">0%</span></strong></p>
+        <button id="botonReiniciar">🗑️ Reiniciar estadísticas (100 🪙)</button>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
         <a href="index.html" class="boton-menu">Volver al menú</a>
     </div>
 
     <div id="mensajeMoneda"></div>
 
     <script>
-        // ========================== SUPABASE ==========================
-        const { createClient } = supabase;
-        const supabaseClient = createClient(
-            "https://tapctytjeknttbmoqflx.supabase.co",
-            "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
-            {
-                auth: {
-                    flowType: 'pkce',
-                    persistSession: true,
-                    detectSessionInUrl: true,
-                    storage: window.localStorage
-                }
-            }
-        );
+    // ========================== SUPABASE ==========================
+    const { createClient } = supabase;
+    const sb = createClient(
+        "https://tapctytjeknttbmoqflx.supabase.co",
+        "sb_publishable_vre912nf_gM7sSk6lgzBZQ_sgUIAwlP",
+        { auth: { flowType:'pkce', persistSession:true, detectSessionInUrl:true, storage:window.localStorage } }
+    );
 
-        // ========================== USUARIO ==========================
-        async function obtenerNombreUsuario() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session?.user) {
-                return session.user.user_metadata?.full_name
-                    || session.user.user_metadata?.name
-                    || session.user.email?.split("@")[0]
-                    || "Anónimo";
-            }
-            return localStorage.getItem("usuario") || "Anónimo";
+    // ========================== MONEDAS ==========================
+    let monedas = parseInt(localStorage.getItem('monedas')) || 0;
+    const monedaDiv = document.createElement("div");
+    monedaDiv.id = "monedaDiv";
+    monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">${monedas}</span>`;
+    document.body.appendChild(monedaDiv);
+    const mensajeMonedaEl = document.getElementById("mensajeMoneda");
+
+    function mostrarMensaje(msg) {
+        mensajeMonedaEl.textContent = msg;
+        mensajeMonedaEl.style.opacity = "1";
+        setTimeout(() => mensajeMonedaEl.style.opacity = "0", 2500);
+    }
+    function actualizarMonedasDisplay() {
+        document.getElementById("cantidadMonedas").textContent = monedas;
+    }
+    function gastarMonedas(cantidad) {
+        if (monedas >= cantidad) {
+            monedas -= cantidad;
+            localStorage.setItem('monedas', monedas);
+            actualizarMonedasDisplay();
+            return true;
+        }
+        mostrarMensaje("No tenés suficientes monedas 🪙");
+        return false;
+    }
+
+    // ========================== MOSTRAR ESTADÍSTICAS ==========================
+    function mostrarDatos(data, nombre) {
+        const aciertos = data.total_aciertos || 0;
+        const fallos   = data.total_fallos   || 0;
+        const efectividad = (aciertos + fallos > 0)
+            ? Math.round(aciertos / (aciertos + fallos) * 100) : 0;
+
+        document.getElementById("nombreJugador").textContent     = nombre;
+        document.getElementById("totalPartidas").textContent     = data.total_partidas || 0;
+        document.getElementById("totalAciertos").textContent     = aciertos;
+        document.getElementById("totalFallos").textContent       = fallos;
+        document.getElementById("totalDesafios").textContent     = data.total_desafios || 0;
+        document.getElementById("efectividadGeneral").textContent = efectividad + "%";
+
+        document.getElementById("loadingStats").style.display           = "none";
+        document.getElementById("contenedorEstadisticas").style.display = "block";
+    }
+
+    // ========================== REINICIAR ==========================
+    document.getElementById("botonReiniciar").addEventListener("click", async () => {
+        if (!gastarMonedas(100)) return;
+
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session?.user) return;
+
+        const { error } = await sb.from("Estadisticas").update({
+            total_partidas: 0,
+            total_aciertos: 0,
+            total_fallos:   0,
+            total_desafios: 0,
+            updated_at: new Date().toISOString()
+        }).eq("id", session.user.id);
+
+        if (error) {
+            mostrarMensaje("Error al reiniciar ❌");
+            return;
         }
 
-        // ========================== ESTADÍSTICAS ==========================
-        let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [{ totalPartidas:0,totalAciertos:0,totalFallos:0,totalDesafios:0 }];
-        let u = usuarios[0];
-
-        let monedas = parseInt(localStorage.getItem('monedas')) || 0;
-
-        const monedaDiv = document.createElement("div");
-        monedaDiv.id = "monedaDiv";
-        monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">${monedas}</span>`;
-        document.body.appendChild(monedaDiv);
-
-        const mensajeMoneda = document.getElementById("mensajeMoneda");
-
-        function mostrarMensaje(msg) {
-            mensajeMoneda.textContent = msg;
-            mensajeMoneda.style.opacity = "1";
-            setTimeout(() => mensajeMoneda.style.opacity = "0", 2500);
+        // También borrar del ranking
+        const { data: perfil } = await sb.from("Perfiles")
+            .select("nombre_usuario").eq("id", session.user.id).single();
+        if (perfil?.nombre_usuario) {
+            await sb.from("Ranking").delete().eq("usuario", perfil.nombre_usuario);
         }
 
-        function actualizarMonedasDisplay(animar = true) {
-            document.getElementById("cantidadMonedas").textContent = monedas;
-            if (animar) {
-                monedaDiv.classList.add("monedaAnim");
-                setTimeout(() => monedaDiv.classList.remove("monedaAnim"), 500);
-            }
+        mostrarDatos({ total_partidas:0, total_aciertos:0, total_fallos:0, total_desafios:0 },
+            document.getElementById("nombreJugador").textContent);
+        mostrarMensaje("¡Estadísticas y ranking reiniciados! ✅");
+    });
+
+    // ========================== INICIALIZAR ==========================
+    async function inicializar() {
+        const { data: { session } } = await sb.auth.getSession();
+
+        if (!session?.user) {
+            // Sin sesión: mostrar cartel
+            document.getElementById("loadingStats").style.display  = "none";
+            document.getElementById("cartelSinSesion").style.display = "block";
+            return;
         }
 
-        function gastarMonedas(cantidad) {
-            if (monedas >= cantidad) {
-                monedas -= cantidad;
-                localStorage.setItem('monedas', monedas);
-                actualizarMonedasDisplay();
-                return true;
-            } else {
-                mostrarMensaje("No tenés suficientes monedas 🪙");
-                return false;
-            }
+        // Obtener nombre del perfil
+        const { data: perfil } = await sb.from("Perfiles")
+            .select("nombre_usuario").eq("id", session.user.id).single();
+        const nombre = perfil?.nombre_usuario || localStorage.getItem("usuario") || "Jugador";
+
+        // Obtener estadísticas
+        const { data: stats, error } = await sb.from("Estadisticas")
+            .select("*").eq("id", session.user.id).single();
+
+        if (error || !stats) {
+            // Nunca jugó con cuenta, mostrar todo en 0
+            mostrarDatos({ total_partidas:0, total_aciertos:0, total_fallos:0, total_desafios:0 }, nombre);
+            return;
         }
 
-        function actualizarEstadisticas() {
-            const totalAciertos = u.totalAciertos;
-            const totalFallos   = u.totalFallos;
-            const efectividad   = (totalAciertos + totalFallos > 0)
-                ? Math.round(totalAciertos / (totalAciertos + totalFallos) * 100) : 0;
+        mostrarDatos(stats, nombre);
+    }
 
-            document.getElementById('totalPartidas').textContent  = u.totalPartidas;
-            document.getElementById('totalAciertos').textContent  = totalAciertos;
-            document.getElementById('totalFallos').textContent    = totalFallos;
-            document.getElementById('totalDesafios').textContent  = u.totalDesafios || 0;
-            document.getElementById('efectividadGeneral').textContent = efectividad + '%';
-        }
-
-        actualizarEstadisticas();
-        actualizarMonedasDisplay(false);
-
-        // ========================== REINICIAR ==========================
-        document.getElementById('botonReiniciar').addEventListener('click', async () => {
-            if (!gastarMonedas(100)) return;
-
-            // 1. Limpiar localStorage
-            u.totalPartidas = 0;
-            u.totalAciertos = 0;
-            u.totalFallos   = 0;
-            u.totalDesafios = 0;
-            localStorage.setItem('usuarios', JSON.stringify(usuarios));
-            actualizarEstadisticas();
-
-            // 2. Borrar del Ranking en Supabase
-            const nombreUsuario = await obtenerNombreUsuario();
-            const { error } = await supabaseClient
-                .from("Ranking")
-                .delete()
-                .eq("usuario", nombreUsuario);
-
-            if (error) {
-                console.error("Error borrando del ranking:", error.message);
-                mostrarMensaje("Estadísticas locales reiniciadas ✅ (error al limpiar ranking)");
-            } else {
-                mostrarMensaje("¡Estadísticas y ranking reiniciados! ✅");
-            }
-        });
+    actualizarMonedasDisplay();
+    inicializar();
     </script>
 </body>
 </html>
