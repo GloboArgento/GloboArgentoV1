@@ -24,10 +24,19 @@ async function sumarPuntosRanking(puntosNuevos) {
         return;
     }
 
-    const nombreUsuario = session.user.user_metadata?.full_name
-        || session.user.user_metadata?.name
-        || session.user.email?.split("@")[0]
-        || "Anónimo";
+    // Obtener nombre del perfil desde Supabase (nombre único en el juego)
+    const { data: perfil } = await supabaseClient
+        .from("Perfiles")
+        .select("nombre_usuario")
+        .eq("id", session.user.id)
+        .single();
+
+    if (!perfil?.nombre_usuario) {
+        console.log("Sin perfil configurado — los puntos no se guardan.");
+        return;
+    }
+
+    const nombreUsuario = perfil.nombre_usuario;
 
     const { data: existente, error: errorBusqueda } = await supabaseClient
         .from("Ranking")
