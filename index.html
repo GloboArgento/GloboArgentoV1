@@ -21,7 +21,6 @@
             margin-top: 20px;
             animation: glow 2s infinite;
         }
-
         #botonTienda {
             position: fixed; top: 10px; left: 10px;
             background: #FFD700; color: #000;
@@ -31,19 +30,16 @@
             transition: transform 0.2s; z-index: 1000;
         }
         #botonTienda:hover { transform: scale(1.1); }
-
         #cerrarSesion {
             position: fixed; top: 10px; right: 10px;
             background: #ff4757; color: #fff;
             padding: 10px 15px; border-radius: 8px;
             font-weight: bold; cursor: pointer;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            display: none; z-index: 1000; border: none;
+            z-index: 1000; border: none;
             transition: transform 0.2s;
         }
         #cerrarSesion:hover { transform: scale(1.05); }
-
-        /* ===== Modal Tienda ===== */
         #overlayTienda {
             position: fixed; top:0; left:0;
             width:100%; height:100%;
@@ -55,85 +51,10 @@
             width: 80%; max-width: 900px; height: 80%;
             background: #fff; border-radius: 15px;
             overflow: hidden; position: relative;
-            animation: aparecer 0.4s ease;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
-        @keyframes aparecer { from { transform: scale(0.8); opacity:0; } to { transform: scale(1); opacity:1; } }
         #cerrarTienda { position: absolute; top:10px; right:15px; font-size:22px; cursor:pointer; font-weight:bold; z-index:10; }
         #modalTienda iframe { width:100%; height:100%; border:none; }
-
-        /* ===== Overlay general ===== */
-        .overlay {
-            position: fixed; top:0; left:0;
-            width:100%; height:100%;
-            background: rgba(0,0,0,0.75);
-            display: none; align-items: center; justify-content: center;
-            z-index: 3000;
-        }
-        .modal-box {
-            background: #fff; padding: 30px;
-            border-radius: 15px; text-align: center;
-            width: 90%; max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            animation: aparecer 0.3s ease;
-        }
-        .modal-box h2 { margin-bottom: 4px; font-size: 22px; }
-        .modal-box .subtitulo { color: #888; font-size: 13px; margin-bottom: 16px; }
-
-        /* Inputs */
-        .modal-input {
-            width: 100%; padding: 10px 12px;
-            font-size: 15px; border-radius: 8px;
-            border: 1.5px solid #ddd; box-sizing: border-box;
-            margin-bottom: 10px; outline: none;
-            transition: border 0.2s;
-        }
-        .modal-input:focus { border-color: #6c5ce7; }
-
-        /* Botones principales */
-        .btn-primary {
-            width: 100%; padding: 11px;
-            border: none; border-radius: 8px;
-            background: #6c5ce7; color: #fff;
-            font-weight: bold; font-size: 15px;
-            cursor: pointer; margin-top: 4px;
-            transition: background 0.2s;
-        }
-        .btn-primary:hover { background: #5a4bd1; }
-
-        .btn-google {
-            display: flex; align-items: center; justify-content: center;
-            gap: 10px; width: 100%; padding: 10px;
-            border: 2px solid #ddd; border-radius: 8px;
-            background: #fff; color: #444;
-            font-weight: bold; font-size: 15px;
-            cursor: pointer; margin-bottom: 10px;
-            transition: background 0.2s, box-shadow 0.2s;
-        }
-        .btn-google:hover { background: #f5f5f5; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-        .btn-google img { width: 20px; height: 20px; }
-
-        .btn-link {
-            background: none; border: none;
-            color: #6c5ce7; font-size: 13px;
-            cursor: pointer; text-decoration: underline;
-            margin-top: 8px; display: block; width: 100%;
-        }
-        .btn-link:hover { color: #5a4bd1; }
-
-        .separador {
-            display: flex; align-items: center; gap: 10px;
-            color: #bbb; font-size: 13px; margin: 10px 0;
-        }
-        .separador::before, .separador::after {
-            content:''; flex:1; height:1px; background:#e0e0e0;
-        }
-
-        .msg-error { color: #d63031; font-size: 13px; margin-top: 6px; min-height: 18px; }
-        .msg-ok    { color: #00b894; font-size: 13px; margin-top: 6px; min-height: 18px; }
-        .msg-aviso { color: #aaa; font-size: 12px; margin-top: 4px; }
-
-        /* ===== País del día ===== */
         #paisDelDia {
             width: 280px; margin: 30px auto 0;
             padding: 15px;
@@ -144,8 +65,6 @@
             transition: opacity 0.5s ease, transform 0.5s ease;
         }
         #paisDelDia img { width:140px; border-radius:8px; border:2px solid #fff; }
-
-        /* ===== Nombre usuario animado ===== */
         #nombreUsuarioDisplay {
             position: fixed; bottom:15px; right:15px;
             background: linear-gradient(135deg, #6c5ce7, #00b894);
@@ -154,40 +73,30 @@
             font-family: Arial, sans-serif;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             animation: deslizarBrillo 2s ease-in-out infinite alternate;
-            z-index: 1000; display:none;
+            z-index: 1000;
         }
         @keyframes deslizarBrillo {
             0%   { transform: translateY(10px); }
-            50%  { transform: translateY(0px); }
+            50%  { transform: translateY(0px);  }
             100% { transform: translateY(10px); }
-        }
-
-        /* ===== Loading ===== */
-        #loadingOverlay {
-            position: fixed; inset:0;
-            background: rgba(0,0,0,0.5);
-            display: flex; align-items:center; justify-content:center;
-            z-index: 9999; color:#fff; font-size:20px; font-family:Arial,sans-serif;
         }
     </style>
 </head>
 <body>
 
-    <div id="loadingOverlay">Cargando... ⏳</div>
-
     <div id="botonTienda">Tienda 🛒</div>
     <button id="cerrarSesion">Cerrar sesión</button>
-    <div id="nombreUsuarioDisplay"></div>
+    <div id="nombreUsuarioDisplay">👤 <span id="spanNombre"></span></div>
 
     <h1>Globo Argento 🌎</h1>
     <div id="frases-container"><span id="frase-dia"></span></div>
 
     <div class="menu">
-        <a href="juego.html" class="boton-menu">Jugar</a>
-        <a href="desafio.html" class="boton-menu">Desafío del Día</a>
+        <a href="juego.html"        class="boton-menu">Jugar</a>
+        <a href="desafio.html"      class="boton-menu">Desafío del Día</a>
         <a href="estadisticas.html" class="boton-menu">Estadísticas Generales</a>
-        <a href="ranking.html" class="boton-menu">Ranking</a>
-        <a href="emoji.html" class="boton-menu">Emojis 🎭
+        <a href="ranking.html"      class="boton-menu">Ranking</a>
+        <a href="emoji.html"        class="boton-menu">Emojis 🎭
             <span id="rachaEmoji" class="racha">0</span>
         </a>
     </div>
@@ -206,62 +115,6 @@
         </div>
     </div>
 
-    <!-- ===== MODAL PRINCIPAL: elegir método ===== -->
-    <div class="overlay" id="overlayMetodo">
-        <div class="modal-box">
-            <h2>¡Bienvenido a Globo Argento! 🌎</h2>
-            <p class="subtitulo">Iniciá sesión para subir al ranking</p>
-
-            <button class="btn-google" id="btnGoogle">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                Continuar con Google
-            </button>
-
-            <button class="btn-primary" id="btnIrEmail" style="background:#4A90E2;">
-                📧 Iniciar sesión con Email
-            </button>
-
-            <div class="separador">o</div>
-
-            <input class="modal-input" type="text" id="inputSinCuenta" placeholder="Nombre para jugar (3-20 caracteres)" maxlength="20">
-            <button class="btn-primary" id="btnSinCuenta" style="background:#636e72;">Jugar sin cuenta</button>
-            <p class="msg-aviso">⚠️ Sin cuenta los puntos no aparecen en el ranking</p>
-            <p class="msg-error" id="msgMetodo"></p>
-        </div>
-    </div>
-
-    <!-- ===== MODAL EMAIL: login o registro ===== -->
-    <div class="overlay" id="overlayEmail">
-        <div class="modal-box">
-            <h2 id="tituloEmail">Iniciar sesión</h2>
-            <p class="subtitulo" id="subtituloEmail">Ingresá tu email y contraseña</p>
-
-            <input class="modal-input" type="email"    id="inputEmail"      placeholder="Email">
-            <input class="modal-input" type="password" id="inputPassword"   placeholder="Contraseña">
-            <input class="modal-input" type="password" id="inputPassword2"  placeholder="Repetir contraseña" style="display:none;">
-
-            <button class="btn-primary" id="btnAccion">Ingresar</button>
-
-            <button class="btn-link" id="btnToggleRegistro">¿No tenés cuenta? Registrate</button>
-            <button class="btn-link" id="btnOlvidePassword">¿Olvidaste tu contraseña?</button>
-            <button class="btn-link" id="btnVolverMetodo">← Volver</button>
-
-            <p class="msg-error" id="msgEmail"></p>
-            <p class="msg-ok"    id="msgEmailOk"></p>
-        </div>
-    </div>
-
-    <!-- ===== MODAL NOMBRE DE USUARIO (primera vez) ===== -->
-    <div class="overlay" id="overlayNombre">
-        <div class="modal-box">
-            <h2>Elegí tu nombre en el juego 🎮</h2>
-            <p class="subtitulo">Este nombre aparecerá en el ranking. Solo puede usarlo una persona.</p>
-            <input class="modal-input" type="text" id="inputNombreJuego" placeholder="Nombre único (3-20 caracteres)" maxlength="20">
-            <button class="btn-primary" id="btnGuardarNombre">Confirmar nombre</button>
-            <p class="msg-error" id="msgNombre"></p>
-        </div>
-    </div>
-
     <script>
     // ========================== SUPABASE ==========================
     const { createClient } = supabase;
@@ -271,289 +124,22 @@
         { auth: { flowType:'pkce', persistSession:true, detectSessionInUrl:true, storage:window.localStorage } }
     );
 
-    // ========================== DOM ==========================
-    const loadingOverlay     = document.getElementById("loadingOverlay");
-    const cerrarSesionBtn    = document.getElementById("cerrarSesion");
-    const nombreDisplay      = document.getElementById("nombreUsuarioDisplay");
-
-    const overlayMetodo      = document.getElementById("overlayMetodo");
-    const overlayEmail       = document.getElementById("overlayEmail");
-    const overlayNombre      = document.getElementById("overlayNombre");
-
-    // ========================== HELPERS ==========================
-    function mostrarOverlay(id) {
-        ["overlayMetodo","overlayEmail","overlayNombre"].forEach(o => {
-            document.getElementById(o).style.display = "none";
-        });
-        if (id) document.getElementById(id).style.display = "flex";
+    // ========================== VERIFICAR SESIÓN ==========================
+    // Si no hay usuario en localStorage, mandar a login
+    const nombreGuardado = localStorage.getItem("usuario");
+    if (!nombreGuardado) {
+        window.location.href = "login.html";
+    } else {
+        document.getElementById("spanNombre").textContent = nombreGuardado;
     }
-
-    function mostrarUsuario(nombre) {
-        nombreDisplay.textContent = "👤 " + nombre;
-        nombreDisplay.style.display = "block";
-        cerrarSesionBtn.style.display = "block";
-        loadingOverlay.style.display = "none";
-        mostrarOverlay(null);
-    }
-
-    function validarNombreJuego(n) {
-        return /^[A-Za-z0-9_]{3,20}$/.test(n);
-    }
-
-    // ========================== OBTENER NOMBRE DEL PERFIL ==========================
-    async function obtenerNombrePerfil(userId) {
-        const { data, error } = await sb
-            .from("Perfiles")
-            .select("nombre_usuario")
-            .eq("id", userId)
-            .single();
-        if (error || !data) return null;
-        return data.nombre_usuario;
-    }
-
-    // ========================== FLUJO POST-LOGIN ==========================
-    // Cuando hay sesión activa, verificar si ya tiene perfil o hay que crearlo
-    async function manejarSesion(session) {
-        loadingOverlay.style.display = "flex";
-        const nombre = await obtenerNombrePerfil(session.user.id);
-        if (nombre) {
-            // Ya tiene perfil → entrar directo
-            localStorage.setItem("usuario", nombre);
-            mostrarUsuario(nombre);
-        } else {
-            // Primera vez → pedir nombre de usuario
-            loadingOverlay.style.display = "none";
-            mostrarOverlay("overlayNombre");
-        }
-    }
-
-    // ========================== GUARDAR NOMBRE DE PERFIL ==========================
-    document.getElementById("btnGuardarNombre").addEventListener("click", async () => {
-        const nombre = document.getElementById("inputNombreJuego").value.trim();
-        const msgEl  = document.getElementById("msgNombre");
-        msgEl.textContent = "";
-
-        if (!validarNombreJuego(nombre)) {
-            msgEl.textContent = "3-20 caracteres, solo letras, números y guión bajo.";
-            return;
-        }
-
-        // Verificar que el nombre no esté tomado
-        const { data: existente } = await sb
-            .from("Perfiles")
-            .select("id")
-            .eq("nombre_usuario", nombre)
-            .single();
-
-        if (existente) {
-            msgEl.textContent = "Ese nombre ya está en uso. Elegí otro.";
-            return;
-        }
-
-        // Guardar perfil
-        const { data: { session } } = await sb.auth.getSession();
-        const { error } = await sb
-            .from("Perfiles")
-            .insert({ id: session.user.id, nombre_usuario: nombre });
-
-        if (error) {
-            msgEl.textContent = "Error al guardar el nombre. Intentá de nuevo.";
-            console.error(error);
-            return;
-        }
-
-        localStorage.setItem("usuario", nombre);
-        mostrarUsuario(nombre);
-    });
-
-    // ========================== GOOGLE ==========================
-    document.getElementById("btnGoogle").addEventListener("click", async () => {
-        const { error } = await sb.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin + window.location.pathname,
-                queryParams: { prompt: 'select_account' }
-            }
-        });
-        if (error) document.getElementById("msgMetodo").textContent = "Error con Google: " + error.message;
-    });
-
-    // ========================== EMAIL/PASSWORD ==========================
-    let modoRegistro = false;
-
-    document.getElementById("btnIrEmail").addEventListener("click", () => {
-        modoRegistro = false;
-        actualizarModoEmail();
-        mostrarOverlay("overlayEmail");
-    });
-
-    document.getElementById("btnVolverMetodo").addEventListener("click", () => {
-        mostrarOverlay("overlayMetodo");
-    });
-
-    function actualizarModoEmail() {
-        document.getElementById("tituloEmail").textContent    = modoRegistro ? "Crear cuenta" : "Iniciar sesión";
-        document.getElementById("subtituloEmail").textContent = modoRegistro ? "Ingresá tu email y una contraseña" : "Ingresá tu email y contraseña";
-        document.getElementById("btnAccion").textContent      = modoRegistro ? "Registrarme" : "Ingresar";
-        document.getElementById("inputPassword2").style.display = modoRegistro ? "block" : "none";
-        document.getElementById("btnToggleRegistro").textContent = modoRegistro ? "¿Ya tenés cuenta? Iniciá sesión" : "¿No tenés cuenta? Registrate";
-        document.getElementById("btnOlvidePassword").style.display = modoRegistro ? "none" : "block";
-        document.getElementById("msgEmail").textContent   = "";
-        document.getElementById("msgEmailOk").textContent = "";
-    }
-
-    document.getElementById("btnToggleRegistro").addEventListener("click", () => {
-        modoRegistro = !modoRegistro;
-        actualizarModoEmail();
-    });
-
-    document.getElementById("btnAccion").addEventListener("click", async () => {
-        const email    = document.getElementById("inputEmail").value.trim();
-        const password = document.getElementById("inputPassword").value;
-        const password2= document.getElementById("inputPassword2").value;
-        const msgEl    = document.getElementById("msgEmail");
-        const msgOkEl  = document.getElementById("msgEmailOk");
-        msgEl.textContent = "";
-        msgOkEl.textContent = "";
-
-        if (!email || !password) { msgEl.textContent = "Completá todos los campos."; return; }
-
-        if (modoRegistro) {
-            if (password.length < 6) { msgEl.textContent = "La contraseña debe tener al menos 6 caracteres."; return; }
-            if (password !== password2) { msgEl.textContent = "Las contraseñas no coinciden."; return; }
-
-            const { error } = await sb.auth.signUp({ email, password });
-            if (error) { msgEl.textContent = "Error: " + error.message; return; }
-            msgOkEl.textContent = "✅ Cuenta creada. Revisá tu email para confirmarla, luego iniciá sesión.";
-        } else {
-            const { data, error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) { msgEl.textContent = "Email o contraseña incorrectos."; return; }
-            // La sesión se maneja en onAuthStateChange
-        }
-    });
-
-    // ========================== RECUPERAR CONTRASEÑA ==========================
-    document.getElementById("btnOlvidePassword").addEventListener("click", async () => {
-        const email  = document.getElementById("inputEmail").value.trim();
-        const msgEl  = document.getElementById("msgEmail");
-        const msgOkEl= document.getElementById("msgEmailOk");
-        msgEl.textContent = "";
-        msgOkEl.textContent = "";
-
-        if (!email) { msgEl.textContent = "Primero ingresá tu email arriba."; return; }
-
-        const { error } = await sb.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + window.location.pathname
-        });
-
-        if (error) { msgEl.textContent = "Error: " + error.message; return; }
-        msgOkEl.textContent = "✅ Te enviamos un email para recuperar tu contraseña.";
-    });
-
-    // ========================== SIN CUENTA ==========================
-    document.getElementById("btnSinCuenta").addEventListener("click", () => {
-        const nombre = document.getElementById("inputSinCuenta").value.trim();
-        const msgEl  = document.getElementById("msgMetodo");
-        if (!validarNombreJuego(nombre)) {
-            msgEl.textContent = "El nombre debe tener 3-20 caracteres, sin espacios.";
-            return;
-        }
-        localStorage.setItem("usuario", nombre);
-        // Marcar explícitamente que es sin cuenta para que los JS no suban al ranking
-        localStorage.setItem("sinCuenta", "true");
-        mostrarUsuario(nombre);
-    });
 
     // ========================== CERRAR SESIÓN ==========================
-    cerrarSesionBtn.addEventListener("click", async () => {
+    document.getElementById("cerrarSesion").addEventListener("click", async () => {
         await sb.auth.signOut();
         localStorage.removeItem("usuario");
         localStorage.removeItem("sinCuenta");
-        location.reload();
+        window.location.href = "login.html";
     });
-
-    // ========================== AUTH STATE CHANGE ==========================
-    // Solo manejamos eventos que realmente cambian el estado.
-    // INITIAL_SESSION lo ignoramos porque inicializar() ya lo maneja
-    // de forma sincrónica con el caché de localStorage.
-    sb.auth.onAuthStateChange(async (event, session) => {
-        console.log("Auth event:", event);
-
-        // Limpiar ?code= o ?error= de la URL si existe
-        const url = new URL(window.location.href);
-        if (url.searchParams.has('code') || url.searchParams.has('error')) {
-            url.search = '';
-            url.hash   = '';
-            window.history.replaceState({}, document.title, url.toString());
-        }
-
-        // INITIAL_SESSION: ya lo maneja inicializar(), ignorar acá
-        if (event === 'INITIAL_SESSION') return;
-
-        if (event === 'SIGNED_IN' && session?.user) {
-            localStorage.removeItem("sinCuenta");
-            await manejarSesion(session);
-        }
-
-        if (event === 'SIGNED_OUT') {
-            loadingOverlay.style.display = "none";
-            mostrarOverlay("overlayMetodo");
-            cerrarSesionBtn.style.display = "none";
-            nombreDisplay.style.display = "none";
-        }
-    });
-
-    // ========================== INICIALIZAR ==========================
-    async function inicializar() {
-        // Primero chequeamos el caché local para mostrar algo INMEDIATAMENTE
-        // sin esperar la llamada de red a Supabase
-        const usuarioLocal   = localStorage.getItem("usuario");
-        const esSinCuenta    = localStorage.getItem("sinCuenta") === "true";
-
-        if (usuarioLocal && esSinCuenta) {
-            // Usuario sin cuenta: mostrar directo, sin llamada a Supabase
-            loadingOverlay.style.display = "none";
-            mostrarUsuario(usuarioLocal);
-            return;
-        }
-
-        // Verificar sesión real con Supabase
-        const { data: { session } } = await sb.auth.getSession();
-
-        if (session?.user) {
-            localStorage.removeItem("sinCuenta");
-
-            // Si ya tenemos el nombre en localStorage, mostrarlo inmediatamente
-            // y verificar el perfil en segundo plano
-            if (usuarioLocal) {
-                loadingOverlay.style.display = "none";
-                mostrarUsuario(usuarioLocal);
-
-                // Verificar en segundo plano que el perfil siga existiendo
-                obtenerNombrePerfil(session.user.id).then(nombre => {
-                    if (!nombre) {
-                        // El perfil fue borrado, pedir nombre de nuevo
-                        mostrarOverlay("overlayNombre");
-                    }
-                });
-                return;
-            }
-
-            // Sin nombre en localStorage: consultar Supabase
-            await manejarSesion(session);
-            return;
-        }
-
-        // Sin sesión Supabase
-        loadingOverlay.style.display = "none";
-        if (usuarioLocal && !esSinCuenta) {
-            // Nombre local pero la sesión expiró — pedir login de nuevo
-            localStorage.removeItem("usuario");
-            mostrarOverlay("overlayMetodo");
-        } else {
-            mostrarOverlay("overlayMetodo");
-        }
-    }
 
     // ========================== TIENDA ==========================
     document.getElementById("botonTienda").addEventListener("click", () =>
@@ -629,9 +215,6 @@
     }
     mostrarPaisAleatorio();
     setInterval(mostrarPaisAleatorio, 30000);
-
-    // ========================== ARRANCAR ==========================
-    inicializar();
     </script>
 </body>
 </html>
