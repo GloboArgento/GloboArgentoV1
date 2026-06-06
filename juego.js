@@ -13,61 +13,66 @@ const supabaseClient = createClient(
     }
 );
 
-// -------------------- FUNCIÓN COMPARTIDA: SUMAR PUNTOS AL RANKING --------------------
-// Esta misma lógica la usan juego.js, emoji.js y desafio.js
-// Hace upsert: si el usuario ya existe suma los puntos, si no existe lo crea
+// -------------------- SUMAR PUNTOS AL RANKING --------------------
 async function sumarPuntosRanking(puntosNuevos) {
     if (puntosNuevos <= 0) return;
-
-    // Sin sesión de Supabase = juega sin cuenta, no sube al ranking
     const { data: { session } } = await supabaseClient.auth.getSession();
-    if (!session?.user) {
-        console.log("Sin cuenta — los puntos no se guardan en el ranking.");
-        return;
-    }
+    if (!session?.user) return;
 
-    // Obtener nombre del perfil desde Supabase (nombre único en el juego)
     const { data: perfil } = await supabaseClient
-        .from("Perfiles")
-        .select("nombre_usuario")
-        .eq("id", session.user.id)
-        .single();
-
-    if (!perfil?.nombre_usuario) {
-        console.log("Sin perfil configurado — los puntos no se guardan.");
-        return;
-    }
+        .from("Perfiles").select("nombre_usuario").eq("id", session.user.id).single();
+    if (!perfil?.nombre_usuario) return;
 
     const nombreUsuario = perfil.nombre_usuario;
-
-    // 1. Buscar si ya existe el usuario en el ranking
     const { data: existente, error: errorBusqueda } = await supabaseClient
-        .from("Ranking")
-        .select("puntos")
-        .eq("usuario", nombreUsuario)
-        .single();
+        .from("Ranking").select("puntos").eq("usuario", nombreUsuario).single();
 
-    if (errorBusqueda && errorBusqueda.code !== "PGRST116") {
-        // PGRST116 = no encontró fila, eso es normal. Otro error sí es un problema.
-        console.error("Error buscando usuario en ranking:", errorBusqueda.message);
+    if (errorBusqueda && errorBusqueda.code !== "PGRST116") return;
+
+    if (existente) {
+        await supabaseClient.from("Ranking")
+            .update({ puntos: existente.puntos + puntosNuevos })
+            .eq("usuario", nombreUsuario);
+    } else {
+        await supabaseClient.from("Ranking")
+            .insert({ usuario: nombreUsuario, puntos: puntosNuevos });
+    }
+}
+
+// -------------------- ACTUALIZAR ESTADÍSTICAS EN SUPABASE --------------------
+async function actualizarEstadisticasSupabase(partidas, aciertos, fallos, desafios) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session?.user) return; // sin cuenta, no guarda
+
+    const userId = session.user.id;
+
+    // Buscar si ya tiene fila
+    const { data: existente, error: errBusq } = await supabaseClient
+        .from("Estadisticas").select("*").eq("id", userId).single();
+
+    if (errBusq && errBusq.code !== "PGRST116") {
+        console.error("Error buscando estadísticas:", errBusq.message);
         return;
     }
 
     if (existente) {
-        // Ya existe: sumar los puntos nuevos al total
-        const { error } = await supabaseClient
-            .from("Ranking")
-            .update({ puntos: existente.puntos + puntosNuevos })
-            .eq("usuario", nombreUsuario);
-        if (error) console.error("Error actualizando ranking:", error.message);
-        else console.log(`✅ Ranking actualizado: ${nombreUsuario} → +${puntosNuevos} (total: ${existente.puntos + puntosNuevos})`);
+        const { error } = await supabaseClient.from("Estadisticas").update({
+            total_partidas: existente.total_partidas + partidas,
+            total_aciertos: existente.total_aciertos + aciertos,
+            total_fallos:   existente.total_fallos   + fallos,
+            total_desafios: existente.total_desafios + desafios,
+            updated_at: new Date().toISOString()
+        }).eq("id", userId);
+        if (error) console.error("Error actualizando estadísticas:", error.message);
     } else {
-        // No existe: crear fila nueva
-        const { error } = await supabaseClient
-            .from("Ranking")
-            .insert({ usuario: nombreUsuario, puntos: puntosNuevos });
-        if (error) console.error("Error creando entrada en ranking:", error.message);
-        else console.log(`✅ Nuevo en ranking: ${nombreUsuario} → ${puntosNuevos} puntos`);
+        const { error } = await supabaseClient.from("Estadisticas").insert({
+            id: userId,
+            total_partidas: partidas,
+            total_aciertos: aciertos,
+            total_fallos:   fallos,
+            total_desafios: desafios
+        });
+        if (error) console.error("Error creando estadísticas:", error.message);
     }
 }
 
@@ -95,7 +100,6 @@ const banderas = [
     { pais: "Uruguay", img: "https://flagcdn.com/w160/uy.png", pista: "Mate, fútbol y tranquilidad." }
 ];
 
-// -------------------- Funciones auxiliares --------------------
 function mezclarArray(arr) {
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -104,7 +108,6 @@ function mezclarArray(arr) {
     return arr;
 }
 
-// -------------------- Variables del juego --------------------
 let banderasMezcladas = mezclarArray([...banderas]);
 let currentIndex = 0;
 let aciertos = 0;
@@ -115,16 +118,13 @@ let vidasBase = vidasBaseInicial;
 let vidasExtra = parseInt(localStorage.getItem('vidasExtra')) || 0;
 let vidas = vidasBase + vidasExtra;
 
-let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [{ totalPartidas:0,totalAciertos:0,totalFallos:0,totalDesafios:0 }];
-let u = usuarios[0];
-
 const estadisticasDiv = document.getElementById("estadisticas");
-const boton5050      = document.getElementById("boton5050");
-const botonPista     = document.getElementById("botonPista");
-const pistaDiv       = document.getElementById("pista");
-const opcionesDiv    = document.getElementById("opciones");
-const volverMenuBtn  = document.getElementById("volverMenu");
-const vidasDiv       = document.getElementById("vidas");
+const boton5050       = document.getElementById("boton5050");
+const botonPista      = document.getElementById("botonPista");
+const pistaDiv        = document.getElementById("pista");
+const opcionesDiv     = document.getElementById("opciones");
+const volverMenuBtn   = document.getElementById("volverMenu");
+const vidasDiv        = document.getElementById("vidas");
 
 // -------------------- SISTEMA DE MONEDAS --------------------
 let monedas = parseInt(localStorage.getItem('monedas')) || 0;
@@ -145,8 +145,7 @@ function mostrarMensaje(msg) {
 }
 
 function actualizarMonedasDisplay(animar = true) {
-    const cantidadSpan = document.getElementById("cantidadMonedas");
-    cantidadSpan.textContent = monedas;
+    document.getElementById("cantidadMonedas").textContent = monedas;
     if (animar) {
         monedaDiv.classList.add("monedaAnim");
         setTimeout(() => monedaDiv.classList.remove("monedaAnim"), 500);
@@ -174,7 +173,6 @@ function gastarMonedas(cantidad) {
 // -------------------- Actualizar vidas --------------------
 function actualizarVidas() {
     vidasDiv.innerHTML = "";
-
     for (let i = 0; i < vidasBase; i++) {
         const heart = document.createElement("span");
         heart.className = "corazon";
@@ -199,7 +197,6 @@ function actualizarVidas() {
 function mostrarPregunta() {
     const pregunta = banderasMezcladas[currentIndex];
     document.getElementById("bandera").src = pregunta.img;
-
     opcionesDiv.innerHTML = "";
 
     let opciones = [pregunta];
@@ -221,10 +218,7 @@ function mostrarPregunta() {
                 btn.style.color = "#fff";
                 btn.style.transform = "scale(1.2)";
                 btn.style.boxShadow = "0 0 15px #78D78F";
-                setTimeout(() => {
-                    btn.style.transform = "scale(1)";
-                    btn.style.boxShadow = "none";
-                }, 600);
+                setTimeout(() => { btn.style.transform = "scale(1)"; btn.style.boxShadow = "none"; }, 600);
                 aciertos++;
                 sumarMonedas(5);
             } else {
@@ -237,10 +231,7 @@ function mostrarPregunta() {
                 correctBtn.style.color = "#fff";
                 correctBtn.style.transform = "scale(1.2)";
                 correctBtn.style.boxShadow = "0 0 15px #78D78F";
-                setTimeout(() => {
-                    correctBtn.style.transform = "scale(1)";
-                    correctBtn.style.boxShadow = "none";
-                }, 600);
+                setTimeout(() => { correctBtn.style.transform = "scale(1)"; correctBtn.style.boxShadow = "none"; }, 600);
 
                 if (vidasExtra > 0) {
                     vidasExtra--;
@@ -256,12 +247,7 @@ function mostrarPregunta() {
             setTimeout(() => {
                 currentIndex++;
                 pistaDiv.style.display = "none";
-
-                if (vidas <= 0) {
-                    mostrarEstadisticas();
-                    return;
-                }
-
+                if (vidas <= 0) { mostrarEstadisticas(); return; }
                 if (currentIndex < banderasMezcladas.length) {
                     mostrarPregunta();
                 } else {
@@ -285,14 +271,9 @@ boton5050.onclick = () => {
     const correctBtn = botones.find(b => b.textContent === banderasMezcladas[currentIndex].pais);
     const incorrectBtns = botones.filter(b => b.textContent !== banderasMezcladas[currentIndex].pais);
     const elegidos = mezclarArray(incorrectBtns).slice(0, 2);
-
     botones.forEach(b => {
-        if (!elegidos.includes(b) && b !== correctBtn) {
-            b.style.opacity = 0.3;
-            b.disabled = true;
-        } else {
-            b.style.opacity = 1;
-        }
+        if (!elegidos.includes(b) && b !== correctBtn) { b.style.opacity = 0.3; b.disabled = true; }
+        else { b.style.opacity = 1; }
     });
     boton5050.disabled = true;
 };
@@ -309,24 +290,21 @@ botonPista.onclick = () => {
 async function mostrarEstadisticas() {
     const fallos = intentos - aciertos;
 
-    u.totalPartidas++;
-    u.totalAciertos += aciertos;
-    u.totalFallos += fallos;
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-
-    document.getElementById("aciertos").textContent = aciertos;
-    document.getElementById("fallos").textContent = fallos;
+    document.getElementById("aciertos").textContent    = aciertos;
+    document.getElementById("fallos").textContent      = fallos;
     document.getElementById("puntajeFinal").textContent = aciertos;
 
-    estadisticasDiv.style.display = "flex";
-    estadisticasDiv.style.flexDirection = "column";
-    estadisticasDiv.style.alignItems = "center";
+    estadisticasDiv.style.display        = "flex";
+    estadisticasDiv.style.flexDirection  = "column";
+    estadisticasDiv.style.alignItems     = "center";
     estadisticasDiv.style.justifyContent = "center";
 
-    // Sumar aciertos de esta partida al total acumulado en Supabase
+    // Guardar en Supabase (partidas +1, aciertos y fallos de esta partida)
+    actualizarEstadisticasSupabase(1, aciertos, fallos, 0);
+    // Sumar aciertos al ranking
     sumarPuntosRanking(aciertos);
 
-    // Reiniciar para la próxima partida
+    // Reiniciar
     currentIndex = 0;
     aciertos = 0;
     intentos = 0;
@@ -338,9 +316,7 @@ async function mostrarEstadisticas() {
 }
 
 // -------------------- Volver al menú --------------------
-volverMenuBtn.addEventListener("click", () => {
-    window.location.href = "index.html";
-});
+volverMenuBtn.addEventListener("click", () => { window.location.href = "index.html"; });
 
 // -------------------- Inicializa el juego --------------------
 actualizarVidas();
