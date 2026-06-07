@@ -5,17 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jugar - Globo Argento</title>
 <link rel="stylesheet" href="style.css">
-
-<!-- ✅ Supabase DEBE cargarse antes que juego.js -->
+<!-- Guard: si no hay sesión, redirigir a login -->
+<script>if (!localStorage.getItem("usuario")) { window.location.replace("login.html"); }</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
+    /* Botón volver al menú */
+    #btnVolverMenu {
+        position: fixed;
+        top: 10px; left: 10px;
+        background: #FFD700;
+        color: #000;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        transition: transform 0.2s;
+    }
+    #btnVolverMenu:hover { transform: scale(1.08); }
+
     /* Cuadro final centrado */
     #estadisticas {
         display: none;
         position: fixed;
-        top: 50%;
-        left: 50%;
+        top: 50%; left: 50%;
         transform: translate(-50%, -50%);
         background: white;
         padding: 30px 40px;
@@ -39,7 +55,6 @@
         transform: scale(1.05);
         background-color: #357ABD;
     }
-    /* Botones de ayuda (50/50 y pista) */
     .boton-ayuda {
         display: inline-block;
         padding: 10px 20px;
@@ -52,78 +67,50 @@
         transition: transform 0.15s ease, background 0.2s ease;
         margin-right: 10px;
     }
-    .boton-ayuda:hover {
-        transform: scale(1.05);
-        background-color: #FFC107;
-    }
-    /* Botones de opciones */
+    .boton-ayuda:hover { transform: scale(1.05); background-color: #FFC107; }
     #opciones button {
         display: block;
-        width: 80%;
-        max-width: 300px;
-        margin: 10px auto;
-        padding: 12px;
-        font-size: 18px;
-        border-radius: 10px;
+        width: 80%; max-width: 300px;
+        margin: 10px auto; padding: 12px;
+        font-size: 18px; border-radius: 10px;
         border: 2px solid #4A90E2;
         background: linear-gradient(145deg,#4A90E2,#357ABD);
-        color: white;
-        cursor: pointer;
+        color: white; cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.2s ease;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
-    #opciones button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
-    }
-    #opciones button:active {
-        transform: scale(0.98);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    /* Recuadro de pista */
+    #opciones button:hover  { transform: scale(1.05); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
+    #opciones button:active { transform: scale(0.98); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     #pista {
         background: #fff3cd;
         border: 2px solid #FFD700;
         border-radius: 12px;
         padding: 12px 16px;
-        margin: 10px auto;
-        max-width: 400px;
-        font-style: italic;
-        color: #856404;
+        margin: 10px auto; max-width: 400px;
+        font-style: italic; color: #856404;
         text-align: center;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         display: none;
     }
-    /* Corazones de vidas */
-    #vidas {
-        text-align: center;
-        margin-bottom: 15px;
-        font-size: 28px;
-    }
-    .corazon {
-        display: inline-block;
-        margin: 0 5px;
-        transition: transform 0.3s ease, opacity 0.3s ease;
-    }
-    .corazon.perdido {
-        transform: scale(0);
-        opacity: 0;
-    }
+    #vidas { text-align: center; margin-bottom: 15px; font-size: 28px; }
+    .corazon { display: inline-block; margin: 0 5px; transition: transform 0.3s ease, opacity 0.3s ease; }
+    .corazon.perdido { transform: scale(0); opacity: 0; }
 </style>
 </head>
 <body>
+
+<!-- Botón volver al menú fijo arriba -->
+<button id="btnVolverMenu" onclick="window.location.href='index.html'">← Menú</button>
+
 <h1>Adivina la bandera</h1>
 <div id="bandera-container">
     <img id="bandera" src="" alt="Bandera" width="220">
 </div>
-<!-- Botones de ayuda -->
 <div id="ayudas">
     <button id="boton5050" class="boton-ayuda">¡Reduzcamos!</button>
     <button id="botonPista" class="boton-ayuda">💡 Pista</button>
 </div>
-<!-- Corazones de vidas -->
 <div id="vidas"></div>
-<!-- Recuadro de pista -->
 <div id="pista"></div>
 <div id="opciones"></div>
 <p id="puntaje">Puntaje: <span id="contador">0</span></p>
@@ -134,8 +121,6 @@
     <p>Puntaje final: <span id="puntajeFinal">0</span></p>
     <button id="volverMenu">Volver al menú</button>
 </div>
-
-<!-- ✅ juego.js DESPUÉS de Supabase -->
 <script src="monedas.js"></script>
 <script src="juego.js"></script>
 </body>
