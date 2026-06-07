@@ -105,10 +105,10 @@ const mensajeEmoji   = document.getElementById("mensajeEmoji");
 const barraTiempo    = document.getElementById("barraTiempo");
 
 // -------------------- SISTEMA DE MONEDAS --------------------
-let monedas = parseInt(localStorage.getItem('monedas')) || 0;
+let monedas = 0;
 const monedaDiv = document.createElement("div");
 monedaDiv.id = "monedaDiv";
-monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">${monedas}</span>`;
+monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">...</span>`;
 document.body.appendChild(monedaDiv);
 const mensajeMoneda = document.createElement("div");
 mensajeMoneda.id = "mensajeMoneda";
@@ -119,18 +119,21 @@ function mostrarMensaje(msg) {
     mensajeMoneda.style.opacity = "1";
     setTimeout(() => { mensajeMoneda.style.opacity = "0"; }, 1800);
 }
-function actualizarMonedasDisplay(animar = true) {
+function actualizarMonedasDisplay(valor, animar = true) {
+    monedas = valor;
     document.getElementById("cantidadMonedas").textContent = monedas;
     if (animar) {
         monedaDiv.classList.add("monedaAnim");
         setTimeout(() => monedaDiv.classList.remove("monedaAnim"), 500);
     }
 }
-function sumarMonedas(cantidad) {
-    monedas += cantidad;
-    localStorage.setItem('monedas', monedas);
-    actualizarMonedasDisplay(true);
+async function sumarMonedas(cantidad) {
+    const nuevo = await sumarMonedasDB(cantidad);
+    actualizarMonedasDisplay(nuevo, true);
 }
+
+// Cargar monedas al iniciar
+leerMonedas().then(v => actualizarMonedasDisplay(v, false));
 
 // -------------------- Funciones del juego --------------------
 function normalizar(texto) {
