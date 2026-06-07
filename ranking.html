@@ -6,6 +6,7 @@
     <title>Ranking - Globo Argento</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>if (!localStorage.getItem("usuario")) { window.location.replace("login.html"); }</script>
 
     <style>
         /* ===== Layout general ===== */
@@ -117,7 +118,7 @@
 
         #tablaRanking tbody td {
             padding: 13px 16px;
-            color: #BA0D0D;
+            color: #eee;
             font-size: 15px;
         }
         #tablaRanking tbody td:last-child { text-align: right; }
@@ -238,13 +239,14 @@
 
         // ========================== OBTENER USUARIO ==========================
         async function obtenerNombreUsuario() {
+            // Primero intentar desde Perfiles (nombre único del juego)
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session?.user) {
-                return session.user.user_metadata?.full_name
-                    || session.user.user_metadata?.name
-                    || session.user.email?.split("@")[0]
-                    || "Anónimo";
+                const { data: perfil } = await supabaseClient
+                    .from("Perfiles").select("nombre_usuario").eq("id", session.user.id).single();
+                if (perfil?.nombre_usuario) return perfil.nombre_usuario;
             }
+            // Fallback: localStorage (sin cuenta)
             return localStorage.getItem("usuario") || "";
         }
 
