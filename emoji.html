@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Juego de Emojis</title>
 <link rel="stylesheet" href="style.css">
+    <script>if (!localStorage.getItem("usuario")) { window.location.replace("login.html"); }</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
     #emoji-container {
         margin: 30px auto;
@@ -21,80 +21,52 @@
     #inputPais {
         padding: 8px;
         font-size: 16px;
-        width: 40%; /* Más corto */
+        width: 40%;
         border-radius: 6px;
         border: 1px solid #ccc;
         margin-top: 15px;
-        text-align: center; /* Centrado para estética */
+        text-align: center;
     }
     #botonComprobar {
         padding: 8px 15px;
         font-size: 16px;
         border-radius: 6px;
         border: none;
-        background-color: #4CAF50; /* Diferente al de volver al menú */
+        background-color: #4CAF50;
         color: white;
         cursor: pointer;
         margin-left: 10px;
         transition: transform 0.15s ease, background 0.2s ease;
     }
-    #botonComprobar:hover {
-        background-color: #45A049;
-        transform: scale(1.05);
-    }
-    #mensajeEmoji {
-        margin-top: 15px;
-        font-size: 18px;
-        font-weight: bold;
-    }
+    #botonComprobar:hover { background-color: #45A049; transform: scale(1.05); }
+    #mensajeEmoji { margin-top: 15px; font-size: 18px; font-weight: bold; }
     #barraTiempoContainer {
-        width: 60%;
-        height: 8px;
-        background-color: #ccc;
-        margin: 15px auto;
-        border-radius: 4px;
-        overflow: hidden;
+        width: 60%; height: 8px; background-color: #ccc;
+        margin: 15px auto; border-radius: 4px; overflow: hidden;
     }
     #barraTiempo {
-        height: 100%;
-        width: 100%;
-        background-color: #4A90E2;
+        height: 100%; width: 100%; background-color: #4A90E2;
         transition: width 1s linear, background-color 1s linear;
     }
     #volverMenu {
-        display: inline-block;
-        padding: 10px 20px;
-        font-size: 16px;
-        border-radius: 8px;
-        background-color: #4A90E2;
-        color: white;
-        border: none;
-        cursor: pointer;
-        margin-top: 20px;
+        display: inline-block; padding: 10px 20px; font-size: 16px;
+        border-radius: 8px; background-color: #4A90E2; color: white;
+        border: none; cursor: pointer; margin-top: 20px;
         transition: transform 0.15s ease, background 0.2s ease;
     }
-    #volverMenu:hover {
-        transform: scale(1.05);
-        background-color: #357ABD;
-    }
+    #volverMenu:hover { transform: scale(1.05); background-color: #357ABD; }
 </style>
 </head>
 <body>
 <h1>Juego de Emojis</h1>
-
 <div id="emoji-container"></div>
-
 <input type="text" id="inputPais" placeholder="Escribe el país..." autocomplete="off">
 <button id="botonComprobar">Comprobar</button>
-
 <div id="barraTiempoContainer">
     <div id="barraTiempo"></div>
 </div>
-
 <p id="mensajeEmoji"></p>
-
 <button id="volverMenu" onclick="window.location.href='index.html'">Volver al menú</button>
-
 <script src="monedas.js"></script>
 <script src="emoji.js"></script>
 </body>
