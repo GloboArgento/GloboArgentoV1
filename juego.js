@@ -127,11 +127,11 @@ const volverMenuBtn   = document.getElementById("volverMenu");
 const vidasDiv        = document.getElementById("vidas");
 
 // -------------------- SISTEMA DE MONEDAS --------------------
-let monedas = parseInt(localStorage.getItem('monedas')) || 0;
+let monedas = 0;
 
 const monedaDiv = document.createElement("div");
 monedaDiv.id = "monedaDiv";
-monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">${monedas}</span>`;
+monedaDiv.innerHTML = `🪙 <span id="cantidadMonedas">...</span>`;
 document.body.appendChild(monedaDiv);
 
 const mensajeMoneda = document.createElement("div");
@@ -144,7 +144,8 @@ function mostrarMensaje(msg) {
     setTimeout(() => { mensajeMoneda.style.opacity = "0"; }, 1800);
 }
 
-function actualizarMonedasDisplay(animar = true) {
+function actualizarMonedasDisplay(valor, animar = true) {
+    monedas = valor;
     document.getElementById("cantidadMonedas").textContent = monedas;
     if (animar) {
         monedaDiv.classList.add("monedaAnim");
@@ -152,23 +153,25 @@ function actualizarMonedasDisplay(animar = true) {
     }
 }
 
-function sumarMonedas(cantidad) {
-    monedas += cantidad;
-    localStorage.setItem('monedas', monedas);
-    actualizarMonedasDisplay(true);
+async function sumarMonedas(cantidad) {
+    const nuevo = await sumarMonedasDB(cantidad);
+    actualizarMonedasDisplay(nuevo, true);
 }
 
-function gastarMonedas(cantidad) {
-    if (monedas >= cantidad) {
-        monedas -= cantidad;
-        localStorage.setItem('monedas', monedas);
-        actualizarMonedasDisplay(true);
+async function gastarMonedas(cantidad) {
+    const ok = await gastarMonedasDB(cantidad);
+    if (ok) {
+        const actual = await leerMonedas();
+        actualizarMonedasDisplay(actual, true);
         return true;
     } else {
         mostrarMensaje("❌ ¡Monedas insuficientes!");
         return false;
     }
 }
+
+// Cargar monedas al iniciar
+leerMonedas().then(v => actualizarMonedasDisplay(v, false));
 
 // -------------------- Actualizar vidas --------------------
 function actualizarVidas() {
@@ -220,7 +223,7 @@ function mostrarPregunta() {
                 btn.style.boxShadow = "0 0 15px #78D78F";
                 setTimeout(() => { btn.style.transform = "scale(1)"; btn.style.boxShadow = "none"; }, 600);
                 aciertos++;
-                sumarMonedas(5);
+                sumarMonedas(5); // async, no bloquea
             } else {
                 btn.style.background = "linear-gradient(135deg, #F2A6A6, #E85C5C)";
                 btn.style.color = "#fff";
